@@ -34,14 +34,35 @@ def one_circle_two_edge(circle1, edge1, edge2):
     return Circle(x, y, r)
 
 
-def two_circle_one_edge(circle1, circle2, edge):
-    def equations(p):
-        x, y, r = p
-        return (pow(x - circle1.x, 2) + pow(y - circle1.y, 2) - pow(r + circle1.r, 2),
-                pow(x - circle2.x, 2) + pow(y - circle2.y, 2) - pow(r + circle2.r, 2),
-                edge.A * x + edge.B * y + edge.C)
+# def two_circle_one_edge(circle1, circle2, edge):
+#     r1, r2 = circle1.r, circle2.r
+#     r = pow(math.sqrt(r1 * r2) / (math.sqrt(r1) + math.sqrt(r2)), 2)
+#
+#     def equations(p):
+#         x, y = p
+#         return (pow(x - circle1.x, 2) + pow(y - circle1.y, 2) - pow(r + circle1.r, 2),
+#                 pow(x - circle2.x, 2) + pow(y - circle2.y, 2) - pow(r + circle2.r, 2),)
+#                 # abs(edge.A * x + edge.B * y + edge.C) - r * math.sqrt(edge.A * edge.A + edge.B * edge.B))
+#
+#     x, y = fsolve(equations, (0, 0, 0))
+#     return Circle(x, y, r)
 
-    x, y, r = fsolve(equations, (0, 0, 0))
+def two_circle_one_edge(circle1, circle2, edge):
+    r1, r2 = circle1.r, circle2.r
+    x1, x2 = circle1.x, circle2.x
+    y1, y2 = circle1.y, circle2.y
+    r = pow(math.sqrt(r1 * r2) / (math.sqrt(r1) + math.sqrt(r2)), 2)
+    x, y = 0
+    if edge.A == 0:
+        y3 = -edge.C / edge.B
+        y = y3 + r if y3 < circle1.y else y3 - r
+        x = (-2 * (y1 - y2) * y + 2 * (r2 - r1) * r + r2 * r2 - r1 * r1 + x1 * x1 - x2 * x2 + y1 * y1 - y2 * y2) / (
+            2 * (x1 - x2))
+    if edge.B == 0:
+        x3 = -edge.C / edge.A
+        x = x3 + r if x3 < circle1.x else x3 - r
+        y = (-2 * (x1 - x2) * x + 2 * (r2 - r1) * r + r2 * r2 - r1 * r1 + x1 * x1 - x2 * x2 + y1 * y1 - y2 * y2) / (
+            2 * (y1 - y2))
     return Circle(x, y, r)
 
 
@@ -63,6 +84,7 @@ def three_circle(circle1, circle2, circle3):
     x, y, r = np.linalg.solve(a, b)
     return Circle(x, y, r)
 
+
 class Area(object):
     def __init__(self, type, edges, circles):
         self.type = type
@@ -82,5 +104,17 @@ class Area(object):
         elif self.type == Area.Type.THREE_CIRCLE:
             return three_circle(self.circles[0], self.circles[1], self.circles[2])
 
-    def new_areas(self):
-        return 0
+    def new_areas(self, inner_circle):
+        if self.type == Area.Type.ONE_CIRCLE_TWO_EDGE:
+            return [Area(Area.Type.ONE_CIRCLE_TWO_EDGE, self.edges, inner_circle),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges[0], [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges[1], [self.circles[0], inner_circle])]
+
+        elif self.type == Area.Type.TWO_CIRCLE_ONE_EDGE:
+            return [Area(Area.Type.THREE_CIRCLE, None, [self.circles[0], self.circles[1], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges[0], [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges[0], [self.circles[1], inner_circle])]
+        elif self.type == Area.Type.THREE_CIRCLE:
+            return [Area(Area.Type.THREE_CIRCLE, None, [self.circles[0], self.circles[1], inner_circle]),
+                    Area(Area.Type.THREE_CIRCLE, None, [self.circles[0], self.circles[2], inner_circle]),
+                    Area(Area.Type.THREE_CIRCLE, None, [self.circles[1], self.circles[2], inner_circle])]
