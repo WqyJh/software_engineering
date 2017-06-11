@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: UTF-8 -*-
+
 from scipy.optimize import fsolve
 import numpy as np
 import math
@@ -27,9 +30,11 @@ class Edge(object):
 # edge1 represents a edge that's perpendicular to the X axis
 # edge2 represents a edge that's parallel to the X axis
 def one_circle_two_edge(circle1, edge1, edge2):
+    if edge1.A == 0:
+        edge1, edge2 = edge2, edge1
     r = (math.sqrt(2) - 1) / (math.sqrt(2) + 1) * circle1.r
-    x2 = edge1.x
-    y3 = edge2.y
+    x2 = -edge1.C / edge1.A
+    y3 = -edge2.C / edge2.B
     x = x2 - r if x2 > circle1.x else x2 + r
     y = y3 - r if y3 > circle1.y else y3 + r
     return Circle(x, y, r)
@@ -53,7 +58,7 @@ def two_circle_one_edge(circle1, circle2, edge):
     x1, x2 = circle1.x, circle2.x
     y1, y2 = circle1.y, circle2.y
     r = pow(math.sqrt(r1 * r2) / (math.sqrt(r1) + math.sqrt(r2)), 2)
-    x, y = 0
+    x = y = 0
     if edge.A == 0:
         y3 = -edge.C / edge.B
         y = y3 + r if y3 < circle1.y else y3 - r
@@ -91,6 +96,7 @@ class Area(object):
         self.type = type
         self.edges = edges
         self.circles = circles
+        self.circle = None
 
     class Type(object):
         ONE_CIRCLE_TWO_EDGE = 0
@@ -109,30 +115,31 @@ class Area(object):
 
     def new_areas(self, inner_circle):
         if self.type == Area.Type.ONE_CIRCLE_TWO_EDGE:
-            return [Area(Area.Type.ONE_CIRCLE_TWO_EDGE, self.edges, inner_circle),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges[0], [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges[1], [self.circles[0], inner_circle])]
+            return [Area(Area.Type.ONE_CIRCLE_TWO_EDGE, self.edges, [inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0]], [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[1]], [self.circles[0], inner_circle])]
 
         elif self.type == Area.Type.TWO_CIRCLE_ONE_EDGE:
             return [Area(Area.Type.THREE_CIRCLE, None, [self.circles[0], self.circles[1], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges[0], [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges[0], [self.circles[1], inner_circle])]
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0]], [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0]], [self.circles[1], inner_circle])]
         elif self.type == Area.Type.THREE_CIRCLE:
             return [Area(Area.Type.THREE_CIRCLE, None, [self.circles[0], self.circles[1], inner_circle]),
                     Area(Area.Type.THREE_CIRCLE, None, [self.circles[0], self.circles[2], inner_circle]),
                     Area(Area.Type.THREE_CIRCLE, None, [self.circles[1], self.circles[2], inner_circle])]
 
+
 def plot(result):
     turtle.penup()
-    turtle.goto(-300, 300) # 左上角
+    turtle.goto(-300, 300)  # 左上角
     turtle.pendown()
-    turtle.forward(600) # 右上角
-    turtle.right(90) # 向下
-    turtle.forward(600) # 右下角
-    turtle.right(90) # 向左
-    turtle.forward(600) # 左下角
-    turtle.right(90) # 向上
-    turtle.forward(600) # 左上角
+    turtle.forward(600)  # 右上角
+    turtle.right(90)  # 向下
+    turtle.forward(600)  # 右下角
+    turtle.right(90)  # 向左
+    turtle.forward(600)  # 左下角
+    turtle.right(90)  # 向上
+    turtle.forward(600)  # 左上角
     for circle in result:
         turtle.penup()
         turtle.goto((circle.x + circle.r) * 300, circle.y)
@@ -157,16 +164,17 @@ def main(m):
     while len(queue) > 0 and m >= 0:
         area = queue.pop()
         circle = area.inner_circle()
-        for i in range(0, len(queue)): # 选出圆面积最大的区域
+        for i in range(0, len(queue)):  # 选出圆面积最大的区域
             if queue[i].inner_circle().r > circle.r:
                 queue.append(area)
                 area = queue.pop(i)
-                circle = area.inner_circle() # 总是取最大的这个圆
+                circle = area.inner_circle()  # 总是取最大的这个圆
         areas = area.new_areas(circle)
-        queue = queue + areas # 将新产生的区域加到队列中
+        queue = queue + areas  # 将新产生的区域加到队列中
         result.append(circle)
         m -= 1
     return result
+
 
 result = main(100)
 plot(result)
