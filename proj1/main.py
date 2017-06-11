@@ -152,27 +152,28 @@ class Area(object):
 
 
 def plot(result, name):
+    scale = 400
     turtle.tracer(False)
     turtle.speed("fast")
     turtle.clear()
     turtle.penup()
     turtle.home()
-    turtle.goto(-300, 300)  # 左上角
+    turtle.goto(-scale, scale)  # 左上角
     turtle.pendown()
-    turtle.forward(600)  # 右上角
+    turtle.forward(scale * 2)  # 右上角
     turtle.right(90)  # 向下
-    turtle.forward(600)  # 右下角
+    turtle.forward(scale * 2)  # 右下角
     turtle.right(90)  # 向左
-    turtle.forward(600)  # 左下角
+    turtle.forward(scale * 2)  # 左下角
     turtle.right(90)  # 向上
-    turtle.forward(600)  # 左上角
+    turtle.forward(scale * 2)  # 左上角
     # print "len = ", len(result)
     for circle in result:
         # print circle.x, circle.y, circle.r
         turtle.penup()
-        turtle.goto((circle.x + circle.r) * 300, circle.y * 300)
+        turtle.goto((circle.x + circle.r) * scale, circle.y * scale)
         turtle.pendown()
-        turtle.circle(circle.r * 300)
+        turtle.circle(circle.r * scale)
     ts = turtle.getscreen().getcanvas()
     canvasvg.saveall(name + ".svg", ts)
 
@@ -212,7 +213,8 @@ def main(m):
         m -= 1
     return result
 
-ms = [10, 20, 30, 50, 80, 100]
+
+ms = [10, 20, 30, 50, 80, 100, 200, 300, 400, 500]
 sums = []
 for m in ms:
     result = main(m)
