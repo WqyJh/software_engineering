@@ -1,6 +1,7 @@
 from scipy.optimize import fsolve
 import numpy as np
 import math
+import turtle
 
 
 class Point(object):
@@ -97,12 +98,14 @@ class Area(object):
         THREE_CIRCLE = 3
 
     def inner_circle(self):
-        if self.type == Area.Type.ONE_CIRCLE_TWO_EDGE:
-            return one_circle_two_edge(self.circles[0], self.edges[0], self.edges[1])
-        elif self.type == Area.Type.TWO_CIRCLE_ONE_EDGE:
-            return two_circle_one_edge(self.circles[0], self.circles[1], self.edges[0])
-        elif self.type == Area.Type.THREE_CIRCLE:
-            return three_circle(self.circles[0], self.circles[1], self.circles[2])
+        if self.circle == None:
+            if self.type == Area.Type.ONE_CIRCLE_TWO_EDGE:
+                self.circle = one_circle_two_edge(self.circles[0], self.edges[0], self.edges[1])
+            elif self.type == Area.Type.TWO_CIRCLE_ONE_EDGE:
+                self.circle = two_circle_one_edge(self.circles[0], self.circles[1], self.edges[0])
+            elif self.type == Area.Type.THREE_CIRCLE:
+                self.circle = three_circle(self.circles[0], self.circles[1], self.circles[2])
+        return self.circle
 
     def new_areas(self, inner_circle):
         if self.type == Area.Type.ONE_CIRCLE_TWO_EDGE:
@@ -118,3 +121,52 @@ class Area(object):
             return [Area(Area.Type.THREE_CIRCLE, None, [self.circles[0], self.circles[1], inner_circle]),
                     Area(Area.Type.THREE_CIRCLE, None, [self.circles[0], self.circles[2], inner_circle]),
                     Area(Area.Type.THREE_CIRCLE, None, [self.circles[1], self.circles[2], inner_circle])]
+
+def plot(result):
+    turtle.penup()
+    turtle.goto(-300, 300) # 左上角
+    turtle.pendown()
+    turtle.forward(600) # 右上角
+    turtle.right(90) # 向下
+    turtle.forward(600) # 右下角
+    turtle.right(90) # 向左
+    turtle.forward(600) # 左下角
+    turtle.right(90) # 向上
+    turtle.forward(600) # 左上角
+    for circle in result:
+        turtle.penup()
+        turtle.goto((circle.x + circle.r) * 300, circle.y)
+        turtle.pendown()
+        turtle.circle(circle.r * 300)
+    turtle.exitonclick()
+
+
+def main(m):
+    queue = []
+    result = []
+    circle0 = Circle(0, 0, 1)
+    edge1 = Edge(Point(1, 1), Point(1, -1))
+    edge2 = Edge(Point(1, 1), Point(-1, 1))
+    edge3 = Edge(Point(-1, 1), Point(-1, -1))
+    edge4 = Edge(Point(-1, -1), Point(1, -1))
+    result.append(circle0)
+    queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, [edge1, edge2], [circle0]))
+    queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, [edge2, edge3], [circle0]))
+    queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, [edge3, edge4], [circle0]))
+    queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, [edge4, edge1], [circle0]))
+    while len(queue) > 0 and m >= 0:
+        area = queue.pop()
+        circle = area.inner_circle()
+        for i in range(0, len(queue)): # 选出圆面积最大的区域
+            if queue[i].inner_circle().r > circle.r:
+                queue.append(area)
+                area = queue.pop(i)
+                circle = area.inner_circle() # 总是取最大的这个圆
+        areas = area.new_areas(circle)
+        queue = queue + areas # 将新产生的区域加到队列中
+        result.append(circle)
+        m -= 1
+    return result
+
+result = main(100)
+plot(result)
