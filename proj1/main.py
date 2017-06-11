@@ -6,6 +6,7 @@ import numpy as np
 import math
 import turtle
 import canvasvg
+import pylab
 
 
 class Point(object):
@@ -150,8 +151,12 @@ class Area(object):
                     Area(Area.Type.THREE_CIRCLE, (), (self.circles[1], self.circles[2], inner_circle))]
 
 
-def plot(result):
+def plot(result, name):
+    turtle.tracer(False)
+    turtle.speed("fast")
+    turtle.clear()
     turtle.penup()
+    turtle.home()
     turtle.goto(-300, 300)  # 左上角
     turtle.pendown()
     turtle.forward(600)  # 右上角
@@ -161,16 +166,23 @@ def plot(result):
     turtle.forward(600)  # 左下角
     turtle.right(90)  # 向上
     turtle.forward(600)  # 左上角
-    print "len = ", len(result)
+    # print "len = ", len(result)
     for circle in result:
-        print circle.x, circle.y, circle.r
+        # print circle.x, circle.y, circle.r
         turtle.penup()
         turtle.goto((circle.x + circle.r) * 300, circle.y * 300)
         turtle.pendown()
         turtle.circle(circle.r * 300)
     ts = turtle.getscreen().getcanvas()
-    canvasvg.saveall("result.svg", ts)
-    turtle.exitonclick()
+    canvasvg.saveall(name + ".svg", ts)
+
+
+def sumr2(result):
+    s = 0
+    for circle in result:
+        s += circle.r * circle.r
+    # print "sum r^2 = ", s
+    return s
 
 
 def main(m):
@@ -186,7 +198,7 @@ def main(m):
     queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, (edge2, edge3), (circle0,)))
     queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, (edge3, edge4), (circle0,)))
     queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, (edge4, edge1), (circle0,)))
-    while len(queue) > 0 and m > 0:
+    while len(queue) > 0 and m > 1:
         area = queue.pop()
         circle = area.inner_circle()
         for i in range(0, len(queue)):  # 选出圆面积最大的区域
@@ -200,6 +212,12 @@ def main(m):
         m -= 1
     return result
 
+ms = [10, 20, 30, 50, 80, 100]
+sums = []
+for m in ms:
+    result = main(m)
+    plot(result, "result" + str(m))
+    sums.append(sumr2(result))
 
-result = main(100)
-plot(result)
+pylab.plot(ms, sums)
+pylab.savefig("sum.png")
