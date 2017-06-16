@@ -66,7 +66,7 @@ def one_circle_two_edge(circle1, edge1, edge2):
     if status == 1:
         return Circle(x, y, r)
     else:
-        print mesg
+        # print mesg
         # print x0, y0, r0
         # print x, y, r
         return Circle(0, 0, 0)
@@ -90,7 +90,6 @@ def two_circle_one_edge(circle1, circle2, edge):
         x0 = (x0 - y3) / 2  # x0移动后，相当于(x0,y0)沿两圆心的中垂线移动
 
     r0 = edge.dist_to_point(x0, y0)
-    # r0 = sqrt(abs(r1 * r1 - r2 * r2))
 
     def equations(p):
         x, y, r = p
@@ -103,9 +102,10 @@ def two_circle_one_edge(circle1, circle2, edge):
     if status == 1:
         return Circle(x, y, r)
     else:
-        # print mesg
-        # print x0, y0, r0
-        # print x, y, r
+        # if x0 > 0 and y0 > 0:
+        #     print mesg
+        #     print x0, y0, r0
+        #     print x, y, r
         return Circle(0, 0, 0)
 
 
@@ -177,8 +177,6 @@ def check_area(area, circles, edges):
     circle = area.inner_circle()
     for c in circles:
         if circle.intersect_with(c):
-            # print "circle: x, y, r ", circle.x, circle.y, circle.r
-            # print "c: x, y, r ", c.x, c.y, c.r
             return False
     for edge in edges:
         if circle.r > edge.dist_to_point(circle.x, circle.y):
@@ -188,10 +186,26 @@ def check_area(area, circles, edges):
 
 def sequence_combination(list, n):
     l = []
-    for i in range(len(list) - n + 1):
-        l.append(list[i:i + n])
+    length = len(list)
+    for i in range(length):
+        if i + n <= length:
+            l.append(list[i:i + n])
+        else:
+            l.append(list[i:] + list[0:n - length + i])
     return l
 
+
+def nearest_two_circle(edge, circles):
+    circle1 = Circle(0, 0, 2)
+    circle2 = Circle(0, 0, 2)
+
+    for c in circles:
+        d = edge.dist_to_point(c.x, c.y)
+        if d < edge.dist_to_point(circle1.x, circle1.y):
+            circle1 = c
+        elif d < edge.dist_to_point(circle2.x, circle2.y):
+            circle2 = c
+    return (circle1, circle2)
 
 def plot(result, name):
     scale = 400
@@ -243,20 +257,19 @@ def main(m, blocks):
         max_circle = Circle(0, 0, 0)
         # 一条边，两个圆
         for edge in edges:
-            two_circles = itertools.combinations(circles, 2)
-            for two_circle in two_circles:
-                area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
-                if check_area(area, circles, edges) and area.inner_circle().r > max_circle.r:
+            two_circle = nearest_two_circle(edge, circles)
+            area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
+            if check_area(area, circles, edges) and area.inner_circle().r > max_circle.r:
                 # if area.inner_circle().r > max_circle.r:
-                    max_circle_area = area
-                    max_circle = area.inner_circle()
+                max_circle_area = area
+                max_circle = area.inner_circle()
 
         # 两条边，一个圆
         for two_edge in sequence_combination(edges, 2):
             for c in circles:
                 area = Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, (c,))
                 if check_area(area, circles, edges) and area.inner_circle().r > max_circle.r:
-                # if area.inner_circle().r > max_circle.r:
+                    # if area.inner_circle().r > max_circle.r:
                     max_circle_area = area
                     max_circle = area.inner_circle()
 
@@ -264,7 +277,7 @@ def main(m, blocks):
         for three_circle in itertools.combinations(circles, 3):
             area = Area(Area.Type.THREE_CIRCLE, (), three_circle)
             if check_area(area, circles, edges) and area.inner_circle().r > max_circle.r:
-            # if area.inner_circle().r > max_circle.r:
+                # if area.inner_circle().r > max_circle.r:
                 max_circle_area = area
                 max_circle = area.inner_circle()
 
