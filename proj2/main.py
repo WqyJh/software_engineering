@@ -83,11 +83,11 @@ def two_circle_one_edge(circle1, circle2, edge):
     if edge.B == 0:
         x3 = -edge.C / edge.A
         x0 = (x0 + x3) / 2  # x0向x3方向移动
-        y0 = (y0 - x3) / 2  # y0移动后，相当于(x0,y0)沿两圆心的中垂线移动
+        # y0 = (y0 - x3) / 2  # y0移动后，相当于(x0,y0)沿两圆心的中垂线移动
     else:
         y3 = -edge.C / edge.B
         y0 = (y0 + y3) / 2  # y0向y3方向移动
-        x0 = (x0 - y3) / 2  # x0移动后，相当于(x0,y0)沿两圆心的中垂线移动
+        # x0 = (x0 - y3) / 2  # x0移动后，相当于(x0,y0)沿两圆心的中垂线移动
 
     r0 = edge.dist_to_point(x0, y0)
 
@@ -135,6 +135,15 @@ def three_circle(circle1, circle2, circle3):
         return Circle(0, 0, 0)
 
 
+# 过滤出半径大于0的圆
+def circle_filter(circles):
+    list = []
+    for circle in circles:
+        if circle.r > 0:
+            list.append(circle)
+    return list
+
+
 class Area(object):
     def __init__(self, atype, edges, circles):
         self.atype = atype
@@ -159,17 +168,29 @@ class Area(object):
 
     def new_areas(self, inner_circle):
         if self.atype == Area.Type.ONE_CIRCLE_TWO_EDGE:
-            return [Area(Area.Type.ONE_CIRCLE_TWO_EDGE, self.edges, (inner_circle,)),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (self.edges[0],), (self.circles[0], inner_circle)),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (self.edges[1],), (self.circles[0], inner_circle))]
+            if self.circles[0].r == 0:
+                return [Area(Area.Type.ONE_CIRCLE_TWO_EDGE, self.edges, [inner_circle, ])]
+            return [Area(Area.Type.ONE_CIRCLE_TWO_EDGE, self.edges, [inner_circle, ]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0], ], [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[1], ], [self.circles[0], inner_circle])]
         elif self.atype == Area.Type.TWO_CIRCLE_ONE_EDGE:
-            return [Area(Area.Type.THREE_CIRCLE, (), (self.circles[0], self.circles[1], inner_circle)),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (self.edges[0],), (self.circles[0], inner_circle)),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (self.edges[0],), (self.circles[1], inner_circle))]
+            if self.circles[0].r == 0 and self.circles[1].r == 0:
+                return []
+            elif self.circles[0].r == 0 or self.circles[1].r == 0:
+                c = self.circles[0] if self.circles[0].r != 0 else self.circles[1]
+                return [Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges, [inner_circle, c])]
+            return [Area(Area.Type.THREE_CIRCLE, [], [self.circles[0], self.circles[1], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0], ], [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0], ], [self.circles[1], inner_circle])]
         elif self.atype == Area.Type.THREE_CIRCLE:
-            return [Area(Area.Type.THREE_CIRCLE, (), (self.circles[0], self.circles[1], inner_circle)),
-                    Area(Area.Type.THREE_CIRCLE, (), (self.circles[0], self.circles[2], inner_circle)),
-                    Area(Area.Type.THREE_CIRCLE, (), (self.circles[1], self.circles[2], inner_circle))]
+            filtered_circle = circle_filter(self.circles)
+            if len(filtered_circle) == 0 or len(filtered_circle) == 1:
+                return []
+            elif len(filtered_circle) == 2:
+                return [Area(Area.Type.THREE_CIRCLE, [], [filtered_circle[0], filtered_circle[1], inner_circle])]
+            return [Area(Area.Type.THREE_CIRCLE, [], [self.circles[0], self.circles[1], inner_circle]),
+                    Area(Area.Type.THREE_CIRCLE, [], [self.circles[0], self.circles[2], inner_circle]),
+                    Area(Area.Type.THREE_CIRCLE, [], [self.circles[1], self.circles[2], inner_circle])]
 
 
 # 检查 area 是否合法
@@ -196,6 +217,8 @@ def sequence_combination(list, n):
 
 
 def nearest_two_circle(edge, circles):
+    if len(circles) < 2:
+        return []
     circle1 = Circle(0, 0, 2)
     circle2 = Circle(0, 0, 2)
 
@@ -205,7 +228,7 @@ def nearest_two_circle(edge, circles):
             circle1 = c
         elif d < edge.dist_to_point(circle2.x, circle2.y):
             circle2 = c
-    return (circle1, circle2)
+    return [circle1, circle2]
 
 
 def nearest_one_circle(edge1, edge2, circles):
@@ -265,57 +288,92 @@ def main(m, blocks):
     edge4 = Edge(Point(-1, 1), Point(1, 1))
 
     edges = [edge1, edge2, edge3, edge4]
-    circles = list(blocks)
-    quque = []
+    circles = []
+    queue = []
+
+    for two_edge in sequence_combination(edges, 2):
+        c = nearest_one_circle(two_edge[0], two_edge[1], blocks)
+        queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, [c, ]))
+    for edge in edges:
+        two_circle = nearest_two_circle(edge, blocks)
+        if len(two_circle) > 0:
+            queue.append(Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [edge, ], two_circle))
+    for three_c in itertools.combinations(blocks, 3):
+        queue.append(Area(Area.Type.THREE_CIRCLE, [], three_c))
 
     while m > 0:
-        max_circle_area = None
-        max_circle = Circle(0, 0, 0)
-        # 一条边，两个圆
-        for edge in edges:
-            two_circle = nearest_two_circle(edge, circles)
-            area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
-            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                # if area.inner_circle().r > max_circle.r:
-                max_circle_area = area
-                max_circle = area.inner_circle()
+        area = queue.pop()
+        inner_circle = area.inner_circle()
+        for i in range(len(queue)):
+            if queue[i].inner_circle().r > inner_circle.r:
+                queue.append(area)
+                area = queue.pop(i)
+                inner_circle = area.inner_circle()
+        areas = area.new_areas(inner_circle)
+        queue = queue + areas  # 将新产生的区域加到队列中
 
-        # 两条边，一个圆
-        for two_edge in sequence_combination(edges, 2):
-            c = nearest_one_circle(two_edge[0], two_edge[1], circles)
-            area = Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, (c,))
-            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                # if area.inner_circle().r > max_circle.r:
-                max_circle_area = area
-                max_circle = area.inner_circle()
+        # 找出区域中对应的障碍
+        for c in area.circles:
+            if c.r == 0:
+                # 遍历所有区域，把该障碍替换成这个圆
+                for i in range(len(queue)):
+                    for cls in queue[i].circles:
+                        if cls == c:
+                            queue[i].circles.remove(cls)
+                            queue[i].circles.append(inner_circle)
+                            queue[i].in_circle = None  # 注意要把 in_circle 的值清空
+        circles.append(inner_circle)
+        m -= 1
+    return circles
 
-        # 三个圆
-        for three_circle in itertools.combinations(circles, 3):
-            area = Area(Area.Type.THREE_CIRCLE, (), three_circle)
-            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                # if area.inner_circle().r > max_circle.r:
-                max_circle_area = area
-                max_circle = area.inner_circle()
-
-        if max_circle_area is not None:
-            # 找到了当前最大的圆
-            # 移除圆周上的障碍，这些点已经不能看作半径为 0 的圆了
-            for c in max_circle_area.circles:
-                if c.r == 0:
-                    print "x, y, r = ", c.x, c.y, c.r
-                    circles.remove(c)
-            circles.append(max_circle)
-            # for circle in circles:
-            # print "circle: x, y, r", circle.x, circle.y, circle.r
-            # print "\n"
-            m -= 1
+    # while m > 0:
+    #     max_circle_area = None
+    #     max_circle = Circle(0, 0, 0)
+    #     # 一条边，两个圆
+    #     for edge in edges:
+    #         two_circle = nearest_two_circle(edge, circles)
+    #         area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
+    #         if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
+    #             # if area.inner_circle().r > max_circle.r:
+    #             max_circle_area = area
+    #             max_circle = area.inner_circle()
+    #
+    #     # 两条边，一个圆
+    #     for two_edge in sequence_combination(edges, 2):
+    #         c = nearest_one_circle(two_edge[0], two_edge[1], circles)
+    #         area = Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, (c,))
+    #         if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
+    #             # if area.inner_circle().r > max_circle.r:
+    #             max_circle_area = area
+    #             max_circle = area.inner_circle()
+    #
+    #     # 三个圆
+    #     for three_circle in itertools.combinations(circles, 3):
+    #         area = Area(Area.Type.THREE_CIRCLE, (), three_circle)
+    #         if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
+    #             # if area.inner_circle().r > max_circle.r:
+    #             max_circle_area = area
+    #             max_circle = area.inner_circle()
+    #
+    #     if max_circle_area is not None:
+    #         # 找到了当前最大的圆
+    #         # 移除圆周上的障碍，这些点已经不能看作半径为 0 的圆了
+    #         for c in max_circle_area.circles:
+    #             if c.r == 0:
+    #                 print "x, y, r = ", c.x, c.y, c.r
+    #                 circles.remove(c)
+    #         circles.append(max_circle)
+    #         # for circle in circles:
+    #         # print "circle: x, y, r", circle.x, circle.y, circle.r
+    #         # print "\n"
+    #         m -= 1
 
     # 移除所有障碍
     # for c in circles:
     #     if c.r == 0:
     #         circles.remove(c)
 
-    return circles
+    # return circles
 
 
 ms = [10, 20, 30, 50, 80, 100, 200, 300, 400, 500]
