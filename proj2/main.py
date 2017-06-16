@@ -200,12 +200,28 @@ def nearest_two_circle(edge, circles):
     circle2 = Circle(0, 0, 2)
 
     for c in circles:
-        d = edge.dist_to_point(c.x, c.y)
+        d = edge.dist_to_point(c.x, c.y) - c.r
         if d < edge.dist_to_point(circle1.x, circle1.y):
             circle1 = c
         elif d < edge.dist_to_point(circle2.x, circle2.y):
             circle2 = c
     return (circle1, circle2)
+
+
+def nearest_one_circle(edge1, edge2, circles):
+    circle = None
+    dist = 4.0
+    if edge1.A == 0:
+        edge1, edge2 = edge2, edge1
+    x = -edge1.C / edge1.A
+    y = -edge2.C / edge2.B
+    for c in circles:
+        d = sqrt(pow(x - c.x, 2) + pow(y - c.y, 2)) - c.r
+        if dist > d:
+            dist = d
+            circle = c
+    return circle
+
 
 def plot(result, name):
     scale = 400
@@ -244,9 +260,9 @@ def sumr2(result):
 
 def main(m, blocks):
     edge1 = Edge(Point(1, 1), Point(1, -1))
-    edge2 = Edge(Point(1, 1), Point(-1, 1))
-    edge3 = Edge(Point(-1, 1), Point(-1, -1))
-    edge4 = Edge(Point(-1, -1), Point(1, -1))
+    edge2 = Edge(Point(1, -1), Point(-1, -1))
+    edge3 = Edge(Point(-1, -1), Point(-1, 1))
+    edge4 = Edge(Point(-1, 1), Point(1, 1))
 
     edges = [edge1, edge2, edge3, edge4]
     circles = list(blocks)
@@ -259,24 +275,24 @@ def main(m, blocks):
         for edge in edges:
             two_circle = nearest_two_circle(edge, circles)
             area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
-            if check_area(area, circles, edges) and area.inner_circle().r > max_circle.r:
+            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
                 # if area.inner_circle().r > max_circle.r:
                 max_circle_area = area
                 max_circle = area.inner_circle()
 
         # 两条边，一个圆
         for two_edge in sequence_combination(edges, 2):
-            for c in circles:
-                area = Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, (c,))
-                if check_area(area, circles, edges) and area.inner_circle().r > max_circle.r:
-                    # if area.inner_circle().r > max_circle.r:
-                    max_circle_area = area
-                    max_circle = area.inner_circle()
+            c = nearest_one_circle(two_edge[0], two_edge[1], circles)
+            area = Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, (c,))
+            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
+                # if area.inner_circle().r > max_circle.r:
+                max_circle_area = area
+                max_circle = area.inner_circle()
 
         # 三个圆
         for three_circle in itertools.combinations(circles, 3):
             area = Area(Area.Type.THREE_CIRCLE, (), three_circle)
-            if check_area(area, circles, edges) and area.inner_circle().r > max_circle.r:
+            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
                 # if area.inner_circle().r > max_circle.r:
                 max_circle_area = area
                 max_circle = area.inner_circle()
