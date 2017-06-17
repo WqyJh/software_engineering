@@ -301,13 +301,15 @@ def main(m, blocks):
     for three_c in itertools.combinations(blocks, 3):
         queue.append(Area(Area.Type.THREE_CIRCLE, [], three_c))
 
-    while m > 0:
+    while len(queue) > 0 and m > 0:
         area = queue.pop()
         inner_circle = area.inner_circle()
+        print inner_circle.r
         for i in range(len(queue)):
+            print queue[i].inner_circle().r
             if queue[i].inner_circle().r > inner_circle.r:
-                queue.append(area)
-                area = queue.pop(i)
+                queue.insert(i, area)
+                area = queue.pop(i+1)
                 inner_circle = area.inner_circle()
         areas = area.new_areas(inner_circle)
         queue = queue + areas  # 将新产生的区域加到队列中
