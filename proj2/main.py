@@ -15,6 +15,11 @@ EPSINON = 1e-6
 def float_equals(f1, f2):
     return abs(f1 - f2) < EPSINON
 
+def float_lt(f1, f2):
+    if not float_equals(f1, f2):
+        return f1 < f2
+    return False
+
 
 class Point(object):
     def __init__(self, x, y):
@@ -37,7 +42,6 @@ class Circle(object):
 
     def __eq__(self, other):
         return float_equals(self.x, other.x) and float_equals(self.y, other.y) and float_equals(self.r, other.r)
-
 
 
 class Edge(object):
@@ -190,7 +194,6 @@ class Area(object):
                 return []
             elif self.circles[0].r == 0 or self.circles[1].r == 0:
                 c = self.circles[0] if self.circles[0].r != 0 else self.circles[1]
-                print "c.r != 0", c.r == 0
                 return [Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges, [inner_circle, c])]
             return [Area(Area.Type.THREE_CIRCLE, [], [self.circles[0], self.circles[1], inner_circle]),
                     Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0], ], [self.circles[0], inner_circle]),
@@ -213,9 +216,10 @@ def check_area(area, circles, edges):
         if circle.intersect_with(c):
             return False
     for edge in edges:
-        if circle.r > edge.dist_to_point(circle.x, circle.y):
+        if float_lt(edge.dist_to_point(circle.x, circle.y), circle.r):
             return False
     return True
+
 
 def circle_exists(circles, circle):
     for c in circles:
@@ -236,12 +240,23 @@ def sequence_combination(list, n):
 
 
 def nearest_two_circle(edge, circles):
+    """
+    离边最近的两个圆
+    :param edge:
+    :param circles:
+    :return: (circle1, circle2) 其中 circle1 为最邻近
+    """
     if len(circles) < 2:
         return []
-    circle1 = Circle(0, 0, 0)
-    circle2 = Circle(0, 0, 0)
+    circle1 = circles[0]
+    circle2 = circles[1]
+    d1 = edge.dist_to_point(circle1.x, circle1.y) - circle1.r
+    d2 = edge.dist_to_point(circle2.x, circle2.y) - circle2.r
+    if float_lt(d2, d1):
+        circle1, circle2 = circle2, circle1
 
-    for c in circles:
+    for i in range(2, len(circles)):
+        c = circles[i]
         d = edge.dist_to_point(c.x, c.y) - c.r
         if d < edge.dist_to_point(circle1.x, circle1.y) - circle1.r:
             circle1 = c
@@ -251,17 +266,15 @@ def nearest_two_circle(edge, circles):
 
 
 def nearest_one_circle(edge1, edge2, circles):
-    circle = None
-    dist = 4.0
-    if edge1.A == 0:
-        edge1, edge2 = edge2, edge1
-    x = -edge1.C / edge1.A
-    y = -edge2.C / edge2.B
-    for c in circles:
-        d = sqrt(pow(x - c.x, 2) + pow(y - c.y, 2)) - c.r
-        if dist > d:
-            dist = d
-            circle = c
+    circle = circles[0]
+    edges = [edge1, edge2]
+    min_area = Area(Area.Type.ONE_CIRCLE_TWO_EDGE, edges, [circle, ])
+
+    for i in range(1, len(circles)):
+        area = Area(Area.Type.ONE_CIRCLE_TWO_EDGE, edges, [circles[i], ])
+        if min_area.inner_circle().r > area.inner_circle().r:
+            min_area = area
+            circle = circles[i]
     return circle
 
 
@@ -290,7 +303,8 @@ def plot(result, name):
         turtle.circle(circle.r * scale)
         # ts = turtle.getscreen().getcanvas()
         # canvasvg.saveall(name + ".svg", ts)
-    turtle.clickonexit()
+    turtle.exitonclick()
+
 
 def sumr2(result):
     s = 0
@@ -307,7 +321,7 @@ def main(m, blocks):
     edge4 = Edge(Point(-1, 1), Point(1, 1))
 
     edges = [edge1, edge2, edge3, edge4]
-    circles = []
+    circles = [] + blocks
     queue = []
 
     for two_edge in sequence_combination(edges, 2):
@@ -327,10 +341,14 @@ def main(m, blocks):
         # print inner_circle.r
         for i in range(len(queue)):
             # print queue[i].inner_circle().r
-            if queue[i].inner_circle().r > inner_circle.r:
+            if float_lt(inner_circle.r, queue[i].inner_circle().r):
+            # if queue[i].inner_circle().r > inner_circle.r:
                 queue.insert(i + 1, area)
                 area = queue.pop(i)
                 inner_circle = area.inner_circle()
+
+        if not check_area(area, circles, edges):
+            continue
 
         areas = area.new_areas(inner_circle)
         queue = queue + areas  # 将新产生的区域加到队列中
@@ -405,7 +423,8 @@ def main(m, blocks):
 ms = [10, 20, 30, 50, 80, 100, 200, 300, 400, 500]
 blocks = []
 blocks.append(Circle(0, 0, 0))
-result = main(40, blocks)
+blocks.append(Circle(0.5, 0.5, 0))
+result = main(10, blocks)
 print "length of result = ", len(result)
 plot(result, "test")
 # sums = []

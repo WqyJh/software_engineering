@@ -52,6 +52,17 @@ class Test(unittest.TestCase):
         self.assertEqual(c3, circle1)
         self.assertEqual(c4, circle4)
 
+        circle1 = Circle(0.5, 0.5, 0.1)
+        circle2 = Circle(0.5, -0.5, 0.2)
+        circle3 = Circle(-0.5, -0.5, 0.3)
+        circle4 = Circle(-0.5, 0.5, 0.4)
+        circles = (circle1, circle2, circle3, circle4)
+        edge1 = Edge(Point(1, 1), Point(1, -1))
+        c1, c2 = nearest_two_circle(edge1, circles)
+        self.assertEqual(c1, circle2)
+        self.assertEqual(c2, circle1)
+
+
     def test_nearest_one_circle(self):
         edge1 = Edge(Point(1, 1), Point(1, -1))
         edge2 = Edge(Point(1, 1), Point(-1, 1))
@@ -86,6 +97,16 @@ class Test(unittest.TestCase):
         self.assertTrue(circle_exists(circles, circle2))
         self.assertTrue(circle_exists(circles, circle3))
         self.assertFalse(circle_exists(circles, circle4))
+
+    def test_check_area(self):
+        circle1 = Circle(0.5, 0.5, 0.5)
+        circle2 = Circle(0, 0, 0)
+        edge1 = Edge(Point(1, 1), Point(1, -1))
+        edge2 = Edge(Point(1, -1), Point(-1, -1))
+        edge3 = Edge(Point(-1, -1), Point(-1, 1))
+        edge4 = Edge(Point(-1, 1), Point(1, 1))
+
+        edges = [edge1, edge2, edge3, edge4]
 
 if __name__ == '__main__':
     unittest.main()
