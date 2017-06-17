@@ -456,6 +456,8 @@ blocks = []
 blocks.append(Circle(0, 0, 0))
 blocks.append(Circle(0.5, 0.5, 0))
 blocks.append(Circle(0.5, -0.5, 0))
+blocks.append(Circle(-0.6, -0.6, 0))
+blocks.append(Circle(-0.5, 0.5, 0))
 result = main(20, blocks)
 print "length of result = ", len(result)
 plot(result, blocks, "test")

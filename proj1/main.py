@@ -124,7 +124,7 @@ class Area(object):
     class Type(object):
         ONE_CIRCLE_TWO_EDGE = 0
         TWO_CIRCLE_ONE_EDGE = 1
-        THREE_CIRCLE = 3
+        THREE_CIRCLE = 2
 
     def inner_circle(self):
         if self.in_circle is None:
