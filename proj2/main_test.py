@@ -69,6 +69,23 @@ class Test(unittest.TestCase):
         c = nearest_one_circle(edge1, edge2, (c1, c2))
         self.assertEqual(c, c1)
 
+    def test_eq(self):
+        circle1 = Circle(0.5, 0.5, 0.5)
+        circle2 = Circle(0.5, 0.5, 0.5)
+        circle3 = Circle(0.5, 0.5, 0.6)
+        self.assertTrue(circle1 == circle2)
+        self.assertFalse(circle2 == circle3)
+
+    def test_circle_exists(self):
+        circle1 = Circle(0.5, 0.5, 0.5)
+        circle2 = Circle(0.5, -0.5, 0.5)
+        circle3 = Circle(-0.5, -0.5, 0.5)
+        circle4 = Circle(-0.5, 0.5, 0.5)
+        circles = (circle1, circle2, circle3)
+        self.assertTrue(circle_exists(circles, circle1))
+        self.assertTrue(circle_exists(circles, circle2))
+        self.assertTrue(circle_exists(circles, circle3))
+        self.assertFalse(circle_exists(circles, circle4))
 
 if __name__ == '__main__':
     unittest.main()

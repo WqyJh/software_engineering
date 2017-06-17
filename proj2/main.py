@@ -12,6 +12,10 @@ import pylab
 EPSINON = 1e-6
 
 
+def float_equals(f1, f2):
+    return abs(f1 - f2) < EPSINON
+
+
 class Point(object):
     def __init__(self, x, y):
         self.x = x
@@ -27,9 +31,13 @@ class Circle(object):
     def intersect_with(self, circle):
         d1 = pow(self.x - circle.x, 2) + pow(self.y - circle.y, 2)
         d2 = pow(self.r + circle.r, 2)
-        if (abs(d1 - d2) > EPSINON):
+        if not float_equals(d1, d2):
             return d1 < d2
         return False
+
+    def __eq__(self, other):
+        return float_equals(self.x, other.x) and float_equals(self.y, other.y) and float_equals(self.r, other.r)
+
 
 
 class Edge(object):
@@ -135,8 +143,12 @@ def three_circle(circle1, circle2, circle3):
         return Circle(0, 0, 0)
 
 
-# 过滤出半径大于0的圆
 def circle_filter(circles):
+    """
+    过滤出半径大于0的圆
+    :param circles:
+    :return:
+    """
     list = []
     for circle in circles:
         if circle.r > 0:
@@ -178,6 +190,7 @@ class Area(object):
                 return []
             elif self.circles[0].r == 0 or self.circles[1].r == 0:
                 c = self.circles[0] if self.circles[0].r != 0 else self.circles[1]
+                print "c.r != 0", c.r == 0
                 return [Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges, [inner_circle, c])]
             return [Area(Area.Type.THREE_CIRCLE, [], [self.circles[0], self.circles[1], inner_circle]),
                     Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0], ], [self.circles[0], inner_circle]),
@@ -204,6 +217,12 @@ def check_area(area, circles, edges):
             return False
     return True
 
+def circle_exists(circles, circle):
+    for c in circles:
+        if c == circle:
+            return True
+    return False
+
 
 def sequence_combination(list, n):
     l = []
@@ -219,14 +238,14 @@ def sequence_combination(list, n):
 def nearest_two_circle(edge, circles):
     if len(circles) < 2:
         return []
-    circle1 = Circle(0, 0, 2)
-    circle2 = Circle(0, 0, 2)
+    circle1 = Circle(0, 0, 0)
+    circle2 = Circle(0, 0, 0)
 
     for c in circles:
         d = edge.dist_to_point(c.x, c.y) - c.r
-        if d < edge.dist_to_point(circle1.x, circle1.y):
+        if d < edge.dist_to_point(circle1.x, circle1.y) - circle1.r:
             circle1 = c
-        elif d < edge.dist_to_point(circle2.x, circle2.y):
+        elif d < edge.dist_to_point(circle2.x, circle2.y) - circle2.r:
             circle2 = c
     return [circle1, circle2]
 
@@ -248,7 +267,7 @@ def nearest_one_circle(edge1, edge2, circles):
 
 def plot(result, name):
     scale = 400
-    # turtle.tracer(False)
+    # turtle.tracer(True)
     turtle.speed("fast")
     turtle.clear()
     turtle.penup()
@@ -271,7 +290,7 @@ def plot(result, name):
         turtle.circle(circle.r * scale)
         # ts = turtle.getscreen().getcanvas()
         # canvasvg.saveall(name + ".svg", ts)
-
+    turtle.clickonexit()
 
 def sumr2(result):
     s = 0
@@ -304,13 +323,15 @@ def main(m, blocks):
     while len(queue) > 0 and m > 0:
         area = queue.pop()
         inner_circle = area.inner_circle()
-        print inner_circle.r
+
+        # print inner_circle.r
         for i in range(len(queue)):
-            print queue[i].inner_circle().r
+            # print queue[i].inner_circle().r
             if queue[i].inner_circle().r > inner_circle.r:
-                queue.insert(i, area)
-                area = queue.pop(i+1)
+                queue.insert(i + 1, area)
+                area = queue.pop(i)
                 inner_circle = area.inner_circle()
+
         areas = area.new_areas(inner_circle)
         queue = queue + areas  # 将新产生的区域加到队列中
 
@@ -319,13 +340,16 @@ def main(m, blocks):
             if c.r == 0:
                 # 遍历所有区域，把该障碍替换成这个圆
                 for i in range(len(queue)):
-                    for cls in queue[i].circles:
-                        if cls == c:
-                            queue[i].circles.remove(cls)
-                            queue[i].circles.append(inner_circle)
-                            queue[i].in_circle = None  # 注意要把 in_circle 的值清空
-        circles.append(inner_circle)
-        m -= 1
+                    cls = queue[i].circles
+                    for j in range(len(cls)):
+                        if cls[j] == c:
+                            cls.pop(j)
+                            cls.insert(j, inner_circle)
+                            queue[i].in_circle = None
+
+        if not circle_exists(circles, inner_circle):
+            circles.append(inner_circle)
+            m -= 1
     return circles
 
     # while m > 0:
@@ -381,7 +405,7 @@ def main(m, blocks):
 ms = [10, 20, 30, 50, 80, 100, 200, 300, 400, 500]
 blocks = []
 blocks.append(Circle(0, 0, 0))
-result = main(20, blocks)
+result = main(40, blocks)
 print "length of result = ", len(result)
 plot(result, "test")
 # sums = []
