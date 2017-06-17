@@ -15,6 +15,7 @@ EPSINON = 1e-6
 def float_equals(f1, f2):
     return abs(f1 - f2) < EPSINON
 
+
 def float_lt(f1, f2):
     if not float_equals(f1, f2):
         return f1 < f2
@@ -264,6 +265,7 @@ def nearest_two_circle(edge, circles):
             circle2 = c
     return [circle1, circle2]
 
+
 def find_two_circle(edge, circles):
     """
     找到可以与边构成区域的两个圆的集合
@@ -295,7 +297,8 @@ def nearest_one_circle(edge1, edge2, circles):
 
 def plot(result, blocks, name):
     scale = 400
-    # turtle.tracer(True)
+    turtle.hideturtle()
+    turtle.tracer(False)
     turtle.speed("fast")
     turtle.clear()
     turtle.penup()
@@ -319,24 +322,35 @@ def plot(result, blocks, name):
         turtle.circle(block_radius)
         turtle.end_fill()
 
-    # print "len = ", len(result)
     for circle in result:
-        # print circle.x, circle.y, circle.r
         turtle.penup()
         turtle.goto((circle.x + circle.r) * scale, circle.y * scale)
         turtle.pendown()
         turtle.circle(circle.r * scale)
-        # ts = turtle.getscreen().getcanvas()
-        # canvasvg.saveall(name + ".svg", ts)
-    turtle.exitonclick()
+        ts = turtle.getscreen().getcanvas()
+        canvasvg.saveall(name + ".svg", ts)
+    turtle.hideturtle()
+    # turtle.exitonclick()
 
 
 def sumr2(result):
     s = 0
     for circle in result:
         s += circle.r * circle.r
-    # print "sum r^2 = ", s
     return s
+
+
+def block_filter(blocks, edges):
+    """
+    过滤掉无效的障碍。在边界上的障碍为无效障碍
+    :param blocks:
+    :return:
+    """
+    for block in blocks:
+        for edge in edges:
+            if float_equals(0, edge.dist_to_point(block.x, block.y)):
+                blocks.remove(block)
+    return blocks
 
 
 def main(m, blocks):
@@ -344,11 +358,11 @@ def main(m, blocks):
     edge2 = Edge(Point(1, -1), Point(-1, -1))
     edge3 = Edge(Point(-1, -1), Point(-1, 1))
     edge4 = Edge(Point(-1, 1), Point(1, 1))
-
     edges = [edge1, edge2, edge3, edge4]
-    circles = [] + blocks
-    queue = []
+    block_filter(blocks, edges)
 
+    circles = [] + blocks
+    # queue = []
     # for two_edge in sequence_combination(edges, 2):
     #     c = nearest_one_circle(two_edge[0], two_edge[1], blocks)
     #     queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, [c, ]))
@@ -400,13 +414,8 @@ def main(m, blocks):
         max_circle = Circle(0, 0, 0)
         # 一条边，两个圆
         for edge in edges:
-            # two_circle = nearest_two_circle(edge, circles)
-            # area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
-            # if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-            #     # if area.inner_circle().r > max_circle.r:
-            #     max_circle_area = area
-            #     max_circle = area.inner_circle()
-            two_circles = find_two_circle(edge, circles)
+            # two_circles = find_two_circle(edge, circles)
+            two_circles = itertools.combinations(circles, 2)
             for two_circle in two_circles:
                 area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
                 if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
@@ -436,12 +445,8 @@ def main(m, blocks):
             # 移除圆周上的障碍，这些点已经不能看作半径为 0 的圆了
             for c in max_circle_area.circles:
                 if c.r == 0:
-                    print "x, y, r = ", c.x, c.y, c.r
                     circles.remove(c)
             circles.append(max_circle)
-            # for circle in circles:
-            # print "circle: x, y, r", circle.x, circle.y, circle.r
-            # print "\n"
             m -= 1
 
     # 移除所有障碍
@@ -451,21 +456,18 @@ def main(m, blocks):
     return circles
 
 
-ms = [10, 20, 30, 50, 80, 100, 200, 300, 400, 500]
-blocks = []
-blocks.append(Circle(0, 0, 0))
-blocks.append(Circle(0.5, 0.5, 0))
-blocks.append(Circle(0.5, -0.5, 0))
-blocks.append(Circle(-0.6, -0.6, 0))
-blocks.append(Circle(-0.5, 0.5, 0))
-result = main(20, blocks)
-print "length of result = ", len(result)
-plot(result, blocks, "test")
-# sums = []
-# for m in ms:
-#     result = main(m)
-#     plot(result, "result" + str(m))
-#     sums.append(sumr2(result))
-#
-# pylab.plot(ms, sums)
-# pylab.savefig("sum.png")
+bk1 = Circle(0, 0, 0)
+bk2 = Circle(0.5, 0.5, 0)
+bk3 = Circle(-0.6, -0.5, 0)
+bk4 = Circle(-0.5, 0.5, 0)
+bk5 = Circle(0.3, -0.7, 0)
+bks1 = [bk1]
+bks2 = [bk1, bk2]
+bks3 = [bk1, bk2, bk3]
+bks4 = [bk1, bk2, bk3, bk4]
+bks5 = [bk1, bk2, bk3, bk4, bk5]
+blocks = [bks1, bks2, bks3, bks4, bks5]
+
+for bks in blocks:
+    result = main(30, bks)
+    plot(result, bks, "result" + str(len(bks)))
