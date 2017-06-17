@@ -264,6 +264,21 @@ def nearest_two_circle(edge, circles):
             circle2 = c
     return [circle1, circle2]
 
+def find_two_circle(edge, circles):
+    """
+    找到可以与边构成区域的两个圆的集合
+    :param edge:
+    :param circles:
+    :return:
+    """
+    two_circles = []
+    edges = [edge, ]
+    for two_circle in itertools.combinations(circles, 2):
+        area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, edges, two_circle)
+        if check_area(area, circles, edges):
+            two_circles.append(two_circle)
+    return two_circles
+
 
 def nearest_one_circle(edge1, edge2, circles):
     circle = circles[0]
@@ -278,7 +293,7 @@ def nearest_one_circle(edge1, edge2, circles):
     return circle
 
 
-def plot(result, name):
+def plot(result, blocks, name):
     scale = 400
     # turtle.tracer(True)
     turtle.speed("fast")
@@ -294,6 +309,16 @@ def plot(result, name):
     turtle.forward(scale * 2)  # 左下角
     turtle.right(90)  # 向上
     turtle.forward(scale * 2)  # 左上角
+
+    block_radius = 4
+    for block in blocks:
+        turtle.penup()
+        turtle.goto(block.x * scale + block_radius, block.y * scale)
+        turtle.pendown()
+        turtle.begin_fill()
+        turtle.circle(block_radius)
+        turtle.end_fill()
+
     # print "len = ", len(result)
     for circle in result:
         # print circle.x, circle.y, circle.r
@@ -375,12 +400,19 @@ def main(m, blocks):
         max_circle = Circle(0, 0, 0)
         # 一条边，两个圆
         for edge in edges:
-            two_circle = nearest_two_circle(edge, circles)
-            area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
-            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                # if area.inner_circle().r > max_circle.r:
-                max_circle_area = area
-                max_circle = area.inner_circle()
+            # two_circle = nearest_two_circle(edge, circles)
+            # area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
+            # if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
+            #     # if area.inner_circle().r > max_circle.r:
+            #     max_circle_area = area
+            #     max_circle = area.inner_circle()
+            two_circles = find_two_circle(edge, circles)
+            for two_circle in two_circles:
+                area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
+                if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
+                    # if area.inner_circle().r > max_circle.r:
+                    max_circle_area = area
+                    max_circle = area.inner_circle()
 
         # 两条边，一个圆
         for two_edge in sequence_combination(edges, 2):
@@ -413,10 +445,9 @@ def main(m, blocks):
             m -= 1
 
     # 移除所有障碍
-    # for c in circles:
-    #     if c.r == 0:
-    #         circles.remove(c)
-
+    for c in circles:
+        if c.r == 0:
+            circles.remove(c)
     return circles
 
 
@@ -424,9 +455,10 @@ ms = [10, 20, 30, 50, 80, 100, 200, 300, 400, 500]
 blocks = []
 blocks.append(Circle(0, 0, 0))
 blocks.append(Circle(0.5, 0.5, 0))
-result = main(10, blocks)
+blocks.append(Circle(0.5, -0.5, 0))
+result = main(20, blocks)
 print "length of result = ", len(result)
-plot(result, "test")
+plot(result, blocks, "test")
 # sums = []
 # for m in ms:
 #     result = main(m)
