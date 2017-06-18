@@ -1,13 +1,11 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
+from __future__ import division, print_function
 from scipy.optimize import fsolve
-import numpy as np
 from math import sqrt
-import turtle
-import canvasvg
 import itertools
-import pylab
+
+from ivisual import *
 
 EPSINON = 1e-6
 
@@ -56,16 +54,6 @@ class Circle(object):
             return 1
 
 
-class Edge(object):
-    def __init__(self, point1, point2):
-        self.A = point2.y - point1.y
-        self.B = point1.x - point2.x
-        self.C = point2.x * point1.y - point1.x * point2.y
-
-    def dist_to_point(self, x, y):
-        return abs(self.A * x + self.B * y + self.C) / sqrt(self.A * self.A + self.B * self.B)
-
-
 class Plane(object):
     def __init__(self, point1, point2, point3):
         x1, y1, z1 = point1.x, point1.y, point1.z
@@ -82,38 +70,8 @@ class Plane(object):
 
     def parallel_to(self, other):
         return float_equals(1, abs(self.A * other.A + self.B * other.B + self.C * other.C) / \
-                            (sqrt(self.A * self.A + self.B * self.B + self.C * self.C) + \
+                            (sqrt(self.A * self.A + self.B * self.B + self.C * self.C) * \
                              sqrt(other.A * other.A + other.B * other.B + other.C * other.C)))
-
-
-# edge1 represents a edge that's perpendicular to the X axis
-# edge2 represents a edge that's parallel to the X axis
-def one_circle_two_edge(circle1, edge1, edge2):
-    x1, y1, r1 = circle1.x, circle1.y, circle1.r
-    if edge1.A == 0:
-        edge1, edge2 = edge2, edge1
-
-    x2 = -edge1.C / edge1.A
-    y3 = -edge2.C / edge2.B
-    x0 = (x1 + x2) / 2
-    y0 = (y1 + y3) / 2
-    r0 = min(edge1.dist_to_point(x0, y0), edge2.dist_to_point(x0, y0))
-
-    def equations(p):
-        x, y, r = p
-        return (pow(x - x1, 2) + pow(y - y1, 2) - pow(r + r1, 2),
-                edge1.dist_to_point(x, y) - r,
-                edge2.dist_to_point(x, y) - r)
-
-    ((x, y, r), info, status, mesg) = fsolve(equations, (x0, y0, r0), full_output=True)
-
-    if status == 1:
-        return Circle(x, y, r)
-    else:
-        # print mesg
-        # print x0, y0, r0
-        # print x, y, r
-        return Circle(0, 0, 0)
 
 
 def plane_A_neq_0(planes):
@@ -155,43 +113,6 @@ def one_circle_three_plane(circle1, plane1, plane2, plane3):
 
     x, y, z, r = fsolve(equations, (x0, y0, z0, r0))
     return Circle(x, y, z, r)
-
-
-def two_circle_one_edge(circle1, circle2, edge):
-    x1, y1, r1 = circle1.x, circle1.y, circle1.r
-    x2, y2, r2 = circle2.x, circle2.y, circle2.r
-
-    # 估算圆心的值
-    x0 = (x1 + x2) / 2
-    y0 = (y1 + y2) / 2
-
-    if edge.B == 0:
-        x3 = -edge.C / edge.A
-        x0 = (x0 + x3) / 2  # x0向x3方向移动
-        # y0 = (y0 - x3) / 2  # y0移动后，相当于(x0,y0)沿两圆心的中垂线移动
-    else:
-        y3 = -edge.C / edge.B
-        y0 = (y0 + y3) / 2  # y0向y3方向移动
-        # x0 = (x0 - y3) / 2  # x0移动后，相当于(x0,y0)沿两圆心的中垂线移动
-
-    r0 = edge.dist_to_point(x0, y0)
-
-    def equations(p):
-        x, y, r = p
-        return (pow(x - x1, 2) + pow(y - y1, 2) - pow(r + r1, 2),
-                pow(x - x2, 2) + pow(y - y2, 2) - pow(r + r2, 2),
-                edge.dist_to_point(x, y) - r)
-
-    ((x, y, r), info, status, mesg) = fsolve(equations, (x0, y0, r0), full_output=True)
-
-    if status == 1:
-        return Circle(x, y, r)
-    else:
-        # if x0 > 0 and y0 > 0:
-        #     print mesg
-        #     print x0, y0, r0
-        #     print x, y, r
-        return Circle(0, 0, 0)
 
 
 def two_circle_two_plane(circle1, circle2, plane1, plane2):
@@ -391,13 +312,13 @@ class Area(object):
 
 
 # 检查 area 是否合法
-def check_area(area, circles, edges):
+def check_area(area, circles, planes):
     circle = area.inner_circle()
     for c in circles:
         if circle.intersect_with(c):
             return False
-    for edge in edges:
-        if float_lt(edge.dist_to_point(circle.x, circle.y, circle.z), circle.r):
+    for plane in planes:
+        if float_lt(plane.dist_to_point(circle.x, circle.y, circle.z), circle.r):
             return False
     return True
 
@@ -409,66 +330,12 @@ def circle_exists(circles, circle):
     return False
 
 
-def sequence_combination(list, n):
-    l = []
-    length = len(list)
-    for i in range(length):
-        if i + n <= length:
-            l.append(list[i:i + n])
-        else:
-            l.append(list[i:] + list[0:n - length + i])
-    return l
-
-
-def nearest_one_circle(edge1, edge2, circles):
-    circle = circles[0]
-    edges = [edge1, edge2]
-    min_area = Area(Area.Type.ONE_CIRCLE_THREE_PLANE, edges, [circle, ])
-
-    for i in range(1, len(circles)):
-        area = Area(Area.Type.ONE_CIRCLE_THREE_PLANE, edges, [circles[i], ])
-        if min_area.inner_circle().r > area.inner_circle().r:
-            min_area = area
-            circle = circles[i]
-    return circle
-
-
 def plot(result, blocks, name):
-    scale = 400
-    turtle.hideturtle()
-    turtle.tracer(False)
-    turtle.speed("fast")
-    turtle.clear()
-    turtle.penup()
-    turtle.home()
-    turtle.goto(-scale, scale)  # 左上角
-    turtle.pendown()
-    turtle.forward(scale * 2)  # 右上角
-    turtle.right(90)  # 向下
-    turtle.forward(scale * 2)  # 右下角
-    turtle.right(90)  # 向左
-    turtle.forward(scale * 2)  # 左下角
-    turtle.right(90)  # 向上
-    turtle.forward(scale * 2)  # 左上角
 
-    block_radius = 4
-    for block in blocks:
-        turtle.penup()
-        turtle.goto(block.x * scale + block_radius, block.y * scale)
-        turtle.pendown()
-        turtle.begin_fill()
-        turtle.circle(block_radius)
-        turtle.end_fill()
+    scene = canvas(title='3D scene')
 
     for circle in result:
-        turtle.penup()
-        turtle.goto((circle.x + circle.r) * scale, circle.y * scale)
-        turtle.pendown()
-        turtle.circle(circle.r * scale)
-        ts = turtle.getscreen().getcanvas()
-        canvasvg.saveall(name + ".svg", ts)
-    turtle.hideturtle()
-    # turtle.exitonclick()
+        sphere(pos=vector(circle.x, circle.y, circle.z), radius=circle.r, color=color.red)
 
 
 def sumr2(result):
@@ -478,15 +345,15 @@ def sumr2(result):
     return s
 
 
-def block_filter(blocks, edges):
+def block_filter(blocks, planes):
     """
     过滤掉无效的障碍。在边界上的障碍为无效障碍
     :param blocks:
     :return:
     """
     for block in blocks:
-        for edge in edges:
-            if float_equals(0, edge.dist_to_point(block.x, block.y)):
+        for plane in planes:
+            if float_equals(0, plane.dist_to_point(block.x, block.y, block.z)):
                 blocks.remove(block)
     return blocks
 
@@ -502,7 +369,7 @@ def main(m, blocks):
     point8 = Point(-1, -1, -1)
 
     plane1 = Plane(point1, point2, point3)  # x = 1
-    plane2 = Plane(point4, point5, point6)  # x = -1
+    plane2 = Plane(point5, point6, point7)  # x = -1
     plane3 = Plane(point1, point2, point5)  # y = 1
     plane4 = Plane(point3, point4, point7)  # y = -1
     plane5 = Plane(point1, point3, point5)  # z = 1
@@ -510,7 +377,7 @@ def main(m, blocks):
 
     planes = [plane1, plane2, plane3, plane4, plane5, plane6]
 
-    block_filter(blocks, edges)
+    block_filter(blocks, planes)
 
     circles = [] + blocks
 
@@ -583,6 +450,12 @@ bks4 = [bk1, bk2, bk3, bk4]
 bks5 = [bk1, bk2, bk3, bk4, bk5]
 blocks = [bks1, bks2, bks3, bks4, bks5]
 
-for bks in blocks:
-    result = main(30, bks)
-    plot(result, bks, "result" + str(len(bks)))
+# for bks in blocks:
+#     result = main(30, bks)
+#     plot(result, bks, "result" + str(len(bks)))
+
+result = main(5, bks1)
+# for circle in result:
+#     print circle.x, circle.y, circle.z, circle.r
+
+plot(result, None, None)

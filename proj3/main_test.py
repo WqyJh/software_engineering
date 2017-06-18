@@ -5,112 +5,62 @@ from main import *
 
 
 class Test(unittest.TestCase):
-    def test_sequence_combination(self):
-        a = [1, 2, 3, 4, 5]
-        b = sequence_combination(a, 2)
-        self.assertEqual(5, len(b))
-        self.assertEqual([1, 2], b[0])
-        self.assertEqual([2, 3], b[1])
-        self.assertEqual([3, 4], b[2])
-        self.assertEqual([4, 5], b[3])
-        self.assertEqual([5, 1], b[4])
+    def test_plane(self):
+        plane1 = Plane(Point(1, 1, 1), Point(1, 1, -1), Point(1, -1, -1))
+        self.assertEqual(1, -plane1.D / plane1.A)
 
-        edge1 = Edge(Point(1, 1), Point(1, -1))
-        edge2 = Edge(Point(1, -1), Point(-1, -1))
-        edge3 = Edge(Point(-1, -1), Point(-1, 1))
-        edge4 = Edge(Point(-1, 1), Point(1, 1))
-
-        edges = [edge1, edge2, edge3, edge4]
-        two_edge = sequence_combination(edges, 2)
-        self.assertEqual(4, len(two_edge))
-        self.assertEqual([edge1, edge2], two_edge[0])
-        self.assertEqual([edge2, edge3], two_edge[1])
-        self.assertEqual([edge3, edge4], two_edge[2])
-        self.assertEqual([edge4, edge1], two_edge[3])
-
-
-    def test_edge(self):
-        edge1 = Edge(Point(1, 1), Point(1, -1))
-        self.assertEqual(1, -edge1.C / edge1.A)
-
-        edge2 = Edge(Point(1, 1), Point(-1, 1))
-        self.assertEqual(1, -edge2.C / edge2.B)
-
-    def test_nearest_two_circle(self):
-        circle1 = Circle(0.5, 0.5, 0.5)
-        circle2 = Circle(0.5, -0.5, 0.5)
-        circle3 = Circle(-0.5, -0.5, 0.5)
-        circle4 = Circle(-0.5, 0.5, 0.5)
-        circles = (circle1, circle2, circle3, circle4)
-        edge1 = Edge(Point(1, 1), Point(1, -1))
-        (c1, c2) = nearest_two_circle(edge1, circles)
-        self.assertEqual(c1, circle1)
-        self.assertEqual(c2, circle2)
-
-        edge2 = Edge(Point(1, 1), Point(-1, 1))
-        (c3, c4) = nearest_two_circle(edge2, circles)
-        self.assertEqual(c3, circle1)
-        self.assertEqual(c4, circle4)
-
-        circle1 = Circle(0.5, 0.5, 0.1)
-        circle2 = Circle(0.5, -0.5, 0.2)
-        circle3 = Circle(-0.5, -0.5, 0.3)
-        circle4 = Circle(-0.5, 0.5, 0.4)
-        circles = (circle1, circle2, circle3, circle4)
-        edge1 = Edge(Point(1, 1), Point(1, -1))
-        c1, c2 = nearest_two_circle(edge1, circles)
-        self.assertEqual(c1, circle2)
-        self.assertEqual(c2, circle1)
-
-
-    def test_nearest_one_circle(self):
-        edge1 = Edge(Point(1, 1), Point(1, -1))
-        edge2 = Edge(Point(1, 1), Point(-1, 1))
-        circle1 = Circle(0.5, 0.5, 0.5)
-        circle2 = Circle(0.5, -0.5, 0.5)
-        circle3 = Circle(-0.5, -0.5, 0.5)
-        circle4 = Circle(-0.5, 0.5, 0.5)
-        circles = (circle1, circle2, circle3, circle4)
-
-        c = nearest_one_circle(edge1, edge2, circles)
-        self.assertEqual(c, circle1)
-
-        c1 = Circle(-0.5, 0.5, 1)
-        c2 = Circle(0.5, -0.5, 0.9)
-        c = nearest_one_circle(edge1, edge2, (c1, c2))
-        self.assertEqual(c, c1)
+        plane2 = Plane(Point(1, 1, 1), Point(1, -1, 1), Point(-1, 1, 1))
+        self.assertEqual(1, -plane2.D / plane2.C)
 
     def test_eq(self):
-        circle1 = Circle(0.5, 0.5, 0.5)
-        circle2 = Circle(0.5, 0.5, 0.5)
-        circle3 = Circle(0.5, 0.5, 0.6)
+        circle1 = Circle(0.5, 0.5, 0.5, 0.5)
+        circle2 = Circle(0.5, 0.5, 0.5, 0.5)
+        circle3 = Circle(0.5, 0.5, 0.5, 0.6)
         self.assertTrue(circle1 == circle2)
         self.assertFalse(circle2 == circle3)
 
     def test_circle_exists(self):
-        circle1 = Circle(0.5, 0.5, 0.5)
-        circle2 = Circle(0.5, -0.5, 0.5)
-        circle3 = Circle(-0.5, -0.5, 0.5)
-        circle4 = Circle(-0.5, 0.5, 0.5)
+        circle1 = Circle(0.5, 0.5, 0.5, 0.5)
+        circle2 = Circle(0.5, -0.5, 0.5, 0.5)
+        circle3 = Circle(-0.5, -0.5, 0.5, 0.5)
+        circle4 = Circle(-0.5, 0.5, 0.5, 0.5)
         circles = (circle1, circle2, circle3)
         self.assertTrue(circle_exists(circles, circle1))
         self.assertTrue(circle_exists(circles, circle2))
         self.assertTrue(circle_exists(circles, circle3))
         self.assertFalse(circle_exists(circles, circle4))
 
-    def test_check_area(self):
-        circle1 = Circle(0.5, 0.5, 0.5)
-        circle2 = Circle(0, 0, 0)
-        edge1 = Edge(Point(1, 1), Point(1, -1))
-        edge2 = Edge(Point(1, -1), Point(-1, -1))
-        edge3 = Edge(Point(-1, -1), Point(-1, 1))
-        edge4 = Edge(Point(-1, 1), Point(1, 1))
-
-        edges = [edge1, edge2, edge3, edge4]
-
-
     def test_parallel_to(self):
-        self.assertTrue(False)
+        point1 = Point(1, 1, 1)
+        point2 = Point(1, 1, -1)
+        point3 = Point(1, -1, 1)
+        point4 = Point(1, -1, -1)
+        point5 = Point(-1, 1, 1)
+        point6 = Point(-1, 1, -1)
+        point7 = Point(-1, -1, 1)
+        point8 = Point(-1, -1, -1)
+
+        plane1 = Plane(point1, point2, point3)  # x = 1
+        plane2 = Plane(point5, point6, point7)  # x = -1
+        plane3 = Plane(point1, point2, point5)  # y = 1
+        plane4 = Plane(point3, point4, point7)  # y = -1
+        plane5 = Plane(point1, point3, point5)  # z = 1
+        plane6 = Plane(point2, point4, point6)  # z = -1
+
+        self.assertTrue(plane1.parallel_to(plane2))
+        self.assertTrue(plane2.parallel_to(plane1))
+        self.assertTrue(plane3.parallel_to(plane4))
+        self.assertTrue(plane4.parallel_to(plane3))
+        self.assertTrue(plane5.parallel_to(plane6))
+        self.assertTrue(plane6.parallel_to(plane5))
+
+        self.assertFalse(plane1.parallel_to(plane3))
+        self.assertFalse(plane2.parallel_to(plane4))
+        self.assertFalse(plane3.parallel_to(plane5))
+        self.assertFalse(plane4.parallel_to(plane6))
+        self.assertFalse(plane5.parallel_to(plane1))
+        self.assertFalse(plane6.parallel_to(plane2))
+
 
 if __name__ == '__main__':
     unittest.main()
