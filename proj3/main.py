@@ -331,11 +331,15 @@ def circle_exists(circles, circle):
 
 
 def plot(result, blocks, name):
-
     scene = canvas(title='3D scene')
 
+    for block in blocks:
+        sphere(pos=vector(block.x, block.y, block.z), radius=1.0 / 50, color=color.red)
+
     for circle in result:
-        sphere(pos=vector(circle.x, circle.y, circle.z), radius=circle.r, color=color.red)
+        sphere(pos=vector(circle.x, circle.y, circle.z), radius=circle.r, color=color.blue)
+
+    box(pos=vector(0, 0, 0), size=(2, 2, 2), color=color.blue, opacity=0.2)
 
 
 def sumr2(result):
@@ -454,8 +458,8 @@ blocks = [bks1, bks2, bks3, bks4, bks5]
 #     result = main(30, bks)
 #     plot(result, bks, "result" + str(len(bks)))
 
-result = main(5, bks1)
+result = main(15, bks5)
 # for circle in result:
 #     print circle.x, circle.y, circle.z, circle.r
 
-plot(result, None, None)
+plot(result, bks3, None)

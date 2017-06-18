@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="acef395b-1379-4de7-bcf5-7ab8c1106bc4" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/proj3/result3.gif" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/proj3/main.py" afterPath="$PROJECT_DIR$/proj3/main.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/proj3/main_test.py" afterPath="$PROJECT_DIR$/proj3/main_test.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -51,7 +52,7 @@
             <entry file="file://$PROJECT_DIR$/proj2/main.py">
               <provider selected="true" editor-type-id="text-editor">
                 <state relative-caret-position="354">
-                  <caret line="359" column="31" lean-forward="true" selection-start-line="359" selection-start-column="31" selection-end-line="359" selection-end-column="31" />
+                  <caret line="359" column="31" lean-forward="false" selection-start-line="359" selection-start-column="31" selection-end-line="359" selection-end-column="31" />
                   <folding>
                     <element signature="e#43#76#0" expanded="true" />
                   </folding>
@@ -78,11 +79,21 @@
           <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/proj3/main.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="251">
-                  <caret line="332" column="31" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="461" selection-end-column="0" />
+                <state relative-caret-position="370">
+                  <caret line="461" column="23" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="465" selection-end-column="0" />
                   <folding>
                     <element signature="e#42#89#0" expanded="true" />
                   </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name=".gitignore" pinned="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/.gitignore">
+              <provider selected="true" editor-type-id="text-editor">
+                <state relative-caret-position="34">
+                  <caret line="2" column="8" lean-forward="false" selection-start-line="2" selection-start-column="8" selection-end-line="2" selection-end-column="8" />
+                  <folding />
                 </state>
               </provider>
             </entry>
@@ -136,9 +147,9 @@
       <list>
         <option value="$PROJECT_DIR$/proj1/main.py" />
         <option value="$PROJECT_DIR$/proj2/main_test.py" />
-        <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/proj2/main.py" />
         <option value="$PROJECT_DIR$/proj3/main_test.py" />
+        <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/proj3/main.py" />
       </list>
     </option>
@@ -523,7 +534,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/proj3/main.py</url>
-          <line>383</line>
+          <line>387</line>
           <option name="timeStamp" value="67" />
         </line-breakpoint>
       </breakpoints>
@@ -622,13 +633,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="5" lean-forward="false" selection-start-line="0" selection-start-column="5" selection-end-line="0" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/proj2/main_test.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1802">
@@ -652,7 +656,7 @@
     <entry file="file://$PROJECT_DIR$/proj2/main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="354">
-          <caret line="359" column="31" lean-forward="true" selection-start-line="359" selection-start-column="31" selection-end-line="359" selection-end-column="31" />
+          <caret line="359" column="31" lean-forward="false" selection-start-line="359" selection-start-column="31" selection-end-line="359" selection-end-column="31" />
           <folding>
             <element signature="e#43#76#0" expanded="true" />
           </folding>
@@ -667,10 +671,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="34">
+          <caret line="2" column="8" lean-forward="false" selection-start-line="2" selection-start-column="8" selection-end-line="2" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/proj3/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="251">
-          <caret line="332" column="31" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="461" selection-end-column="0" />
+        <state relative-caret-position="370">
+          <caret line="461" column="23" lean-forward="true" selection-start-line="0" selection-start-column="0" selection-end-line="465" selection-end-column="0" />
           <folding>
             <element signature="e#42#89#0" expanded="true" />
           </folding>
