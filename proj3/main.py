@@ -80,6 +80,11 @@ class Plane(object):
         return abs(self.A * x + self.B * y + self.C * z + self.D) / \
                sqrt(self.A * self.A + self.B * self.B + self.C * self.C)
 
+    def parallel_to(self, other):
+        return float_equals(1, abs(self.A * other.A + self.B * other.B + self.C * other.C) / \
+                            (sqrt(self.A * self.A + self.B * self.B + self.C * self.C) + \
+                             sqrt(other.A * other.A + other.B * other.B + other.C * other.C)))
+
 
 # edge1 represents a edge that's perpendicular to the X axis
 # edge2 represents a edge that's parallel to the X axis
@@ -344,36 +349,45 @@ class Area(object):
             elif self.atype == Area.Type.TWO_CIRCLE_TWO_PLANE:
                 self.in_circle = two_circle_two_plane(self.circles[0], self.circles[1], self.planes[0], self.planes[1])
             elif self.atype == Area.Type.THREE_CIRCLE_ONE_PLANE:
-                self.in_circle = three_circle_one_plane(self.circles[0], self.circles[1], self.circles[2], self.planes[0])
+                self.in_circle = three_circle_one_plane(self.circles[0], self.circles[1], self.circles[2],
+                                                        self.planes[0])
             elif self.atype == Area.Type.FOUR_CIRCLE:
                 self.in_circle = four_circle(self.circles[0], self.circles[1], self.circles[2], self.circles[3])
         return self.in_circle
 
     def new_areas(self, inner_circle):
         if self.atype == Area.Type.ONE_CIRCLE_THREE_PLANE:
-            if self.circles[0].r == 0:
-                return [Area(Area.Type.ONE_CIRCLE_THREE_PLANE, self.planes, [inner_circle, ])]
+            # if self.circles[0].r == 0:
+            #     return [Area(Area.Type.ONE_CIRCLE_THREE_PLANE, self.planes, [inner_circle, ])]
             return [Area(Area.Type.ONE_CIRCLE_THREE_PLANE, self.planes, [inner_circle, ]),
-                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[0], ], [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[1], ], [self.circles[0], inner_circle])]
+                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[0], self.planes[1]],
+                         [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[0], self.planes[2]],
+                         [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[1], self.planes[2]],
+                         [self.circles[0], inner_circle])]
         elif self.atype == Area.Type.TWO_CIRCLE_TWO_PLANE:
-            if self.circles[0].r == 0 and self.circles[1].r == 0:
-                return []
-            elif self.circles[0].r == 0 or self.circles[1].r == 0:
-                c = self.circles[0] if self.circles[0].r != 0 else self.circles[1]
-                return [Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [inner_circle, c])]
-            return [Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[1], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[0], ], [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[0], ], [self.circles[1], inner_circle])]
+            # if self.circles[0].r == 0 and self.circles[1].r == 0:
+            #     return []
+            # elif self.circles[0].r == 0 or self.circles[1].r == 0:
+            #     c = self.circles[0] if self.circles[0].r != 0 else self.circles[1]
+            #     return [Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [inner_circle, c])]
+            return [Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [self.circles[0], inner_circle]),
+                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [self.circles[1], inner_circle]),
+                    Area(Area.Type.THREE_CIRCLE_ONE_PLANE, self.planes[0],
+                         [self.circles[0], self.circles[1], inner_circle]),
+                    Area(Area.Type.THREE_CIRCLE_ONE_PLANE, self.planes[1],
+                         [self.circles[0], self.circles[1], inner_circle])]
         elif self.atype == Area.Type.FOUR_CIRCLE:
-            filtered_circle = circle_filter(self.circles)
-            if len(filtered_circle) == 0 or len(filtered_circle) == 1:
-                return []
-            elif len(filtered_circle) == 2:
-                return [Area(Area.Type.FOUR_CIRCLE, [], [filtered_circle[0], filtered_circle[1], inner_circle])]
-            return [Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[1], inner_circle]),
-                    Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[2], inner_circle]),
-                    Area(Area.Type.FOUR_CIRCLE, [], [self.circles[1], self.circles[2], inner_circle])]
+            # filtered_circle = circle_filter(self.circles)
+            # if len(filtered_circle) == 0 or len(filtered_circle) == 1:
+            #     return []
+            # elif len(filtered_circle) == 2:
+            #     return [Area(Area.Type.FOUR_CIRCLE, [], [filtered_circle[0], filtered_circle[1], inner_circle])]
+            return [Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[1], self.circles[2], inner_circle]),
+                    Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[1], self.circles[3], inner_circle]),
+                    Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[2], self.circles[3], inner_circle]),
+                    Area(Area.Type.FOUR_CIRCLE, [], [self.circles[1], self.circles[2], self.circles[3], inner_circle])]
 
 
 # 检查 area 是否合法
@@ -383,7 +397,7 @@ def check_area(area, circles, edges):
         if circle.intersect_with(c):
             return False
     for edge in edges:
-        if float_lt(edge.dist_to_point(circle.x, circle.y), circle.r):
+        if float_lt(edge.dist_to_point(circle.x, circle.y, circle.z), circle.r):
             return False
     return True
 
@@ -404,48 +418,6 @@ def sequence_combination(list, n):
         else:
             l.append(list[i:] + list[0:n - length + i])
     return l
-
-
-def nearest_two_circle(edge, circles):
-    """
-    离边最近的两个圆
-    :param edge:
-    :param circles:
-    :return: (circle1, circle2) 其中 circle1 为最邻近
-    """
-    if len(circles) < 2:
-        return []
-    circle1 = circles[0]
-    circle2 = circles[1]
-    d1 = edge.dist_to_point(circle1.x, circle1.y) - circle1.r
-    d2 = edge.dist_to_point(circle2.x, circle2.y) - circle2.r
-    if float_lt(d2, d1):
-        circle1, circle2 = circle2, circle1
-
-    for i in range(2, len(circles)):
-        c = circles[i]
-        d = edge.dist_to_point(c.x, c.y) - c.r
-        if d < edge.dist_to_point(circle1.x, circle1.y) - circle1.r:
-            circle1 = c
-        elif d < edge.dist_to_point(circle2.x, circle2.y) - circle2.r:
-            circle2 = c
-    return [circle1, circle2]
-
-
-def find_two_circle(edge, circles):
-    """
-    找到可以与边构成区域的两个圆的集合
-    :param edge:
-    :param circles:
-    :return:
-    """
-    two_circles = []
-    edges = [edge, ]
-    for two_circle in itertools.combinations(circles, 2):
-        area = Area(Area.Type.TWO_CIRCLE_TWO_PLANE, edges, two_circle)
-        if check_area(area, circles, edges):
-            two_circles.append(two_circle)
-    return two_circles
 
 
 def nearest_one_circle(edge1, edge2, circles):
@@ -520,91 +492,68 @@ def block_filter(blocks, edges):
 
 
 def main(m, blocks):
-    edge1 = Edge(Point(1, 1), Point(1, -1))
-    edge2 = Edge(Point(1, -1), Point(-1, -1))
-    edge3 = Edge(Point(-1, -1), Point(-1, 1))
-    edge4 = Edge(Point(-1, 1), Point(1, 1))
-    edges = [edge1, edge2, edge3, edge4]
+    point1 = Point(1, 1, 1)
+    point2 = Point(1, 1, -1)
+    point3 = Point(1, -1, 1)
+    point4 = Point(1, -1, -1)
+    point5 = Point(-1, 1, 1)
+    point6 = Point(-1, 1, -1)
+    point7 = Point(-1, -1, 1)
+    point8 = Point(-1, -1, -1)
+
+    plane1 = Plane(point1, point2, point3)  # x = 1
+    plane2 = Plane(point4, point5, point6)  # x = -1
+    plane3 = Plane(point1, point2, point5)  # y = 1
+    plane4 = Plane(point3, point4, point7)  # y = -1
+    plane5 = Plane(point1, point3, point5)  # z = 1
+    plane6 = Plane(point2, point4, point6)  # z = -1
+
+    planes = [plane1, plane2, plane3, plane4, plane5, plane6]
+
     block_filter(blocks, edges)
 
     circles = [] + blocks
-    # queue = []
-    # for two_edge in sequence_combination(edges, 2):
-    #     c = nearest_one_circle(two_edge[0], two_edge[1], blocks)
-    #     queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, [c, ]))
-    # for edge in edges:
-    #     two_circle = nearest_two_circle(edge, blocks)
-    #     if len(two_circle) > 0:
-    #         queue.append(Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [edge, ], two_circle))
-    # for three_c in itertools.combinations(blocks, 3):
-    #     queue.append(Area(Area.Type.THREE_CIRCLE, [], three_c))
-    #
-    # while len(queue) > 0 and m > 0:
-    #     area = queue.pop()
-    #     inner_circle = area.inner_circle()
-    #
-    #     # print inner_circle.r
-    #     for i in range(len(queue)):
-    #         # print queue[i].inner_circle().r
-    #         if float_lt(inner_circle.r, queue[i].inner_circle().r):
-    #         # if queue[i].inner_circle().r > inner_circle.r:
-    #             queue.insert(i + 1, area)
-    #             area = queue.pop(i)
-    #             inner_circle = area.inner_circle()
-    #
-    #     if not check_area(area, circles, edges):
-    #         continue
-    #
-    #     areas = area.new_areas(inner_circle)
-    #     queue = queue + areas  # 将新产生的区域加到队列中
-    #
-    #     # 找出区域中对应的障碍
-    #     for c in area.circles:
-    #         if c.r == 0:
-    #             # 遍历所有区域，把该障碍替换成这个圆
-    #             for i in range(len(queue)):
-    #                 cls = queue[i].circles
-    #                 for j in range(len(cls)):
-    #                     if cls[j] == c:
-    #                         cls.pop(j)
-    #                         cls.insert(j, inner_circle)
-    #                         queue[i].in_circle = None
-    #
-    #     if not circle_exists(circles, inner_circle):
-    #         circles.append(inner_circle)
-    #         m -= 1
-    # return circles
 
     while m > 0:
         max_circle_area = None
-        max_circle = Circle(0, 0, 0)
-        # 一条边，两个圆
-        for edge in edges:
-            # two_circles = find_two_circle(edge, circles)
-            two_circles = itertools.combinations(circles, 2)
-            for two_circle in two_circles:
-                area = Area(Area.Type.TWO_CIRCLE_TWO_PLANE, (edge,), two_circle)
-                if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                    # if area.inner_circle().r > max_circle.r:
+        max_circle = Circle(0, 0, 0, 0)
+
+        # 四个圆
+        for four_circle in itertools.combinations(circles, 4):
+            area = Area(Area.Type.FOUR_CIRCLE, [], four_circle)
+            if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+                max_circle_area = area
+                max_circle = area.inner_circle()
+
+        # 一个面，三个圆
+        for plane in planes:
+            three_circles = itertools.combinations(circles, 3)
+            for three_circle in three_circles:
+                area = Area(Area.Type.THREE_CIRCLE_ONE_PLANE, [plane, ], three_circle)
+                if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
                     max_circle_area = area
                     max_circle = area.inner_circle()
 
-        # 两条边，一个圆
-        for two_edge in sequence_combination(edges, 2):
-            c = nearest_one_circle(two_edge[0], two_edge[1], circles)
-            area = Area(Area.Type.ONE_CIRCLE_THREE_PLANE, two_edge, (c,))
-            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                # if area.inner_circle().r > max_circle.r:
-                max_circle_area = area
-                max_circle = area.inner_circle()
+        # 两个面，两个圆
+        for two_plane in itertools.combinations(planes, 2):
+            if not two_plane[0].parallel_to(two_plane[1]):
+                two_circles = itertools.combinations(circles, 2)
+                for two_circle in two_circles:
+                    area = Area(Area.Type.TWO_CIRCLE_TWO_PLANE, two_plane, two_circle)
+                    if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+                        max_circle_area = area
+                        max_circle = area.inner_circle()
 
-        # 三个圆
-        for three_circle in itertools.combinations(circles, 3):
-            area = Area(Area.Type.FOUR_CIRCLE, (), three_circle)
-            if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                # if area.inner_circle().r > max_circle.r:
-                max_circle_area = area
-                max_circle = area.inner_circle()
+        # 三个面，一个圆
+        for three_plane in itertools.combinations(planes, 3):
+            if not three_plane[0].parallel_to(three_plane[1]) and \
+                    not three_plane[1].parallel_to(three_plane[2]) and \
+                    not three_plane[2].parallel_to(three_plane[0]):
+                for circle in circles:
+                    area = Area(Area.Type.ONE_CIRCLE_THREE_PLANE, three_plane, [circle, ])
+                    if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+                        max_circle_area = area
+                        max_circle = area.inner_circle()
 
         if max_circle_area is not None:
             # 找到了当前最大的圆
@@ -622,11 +571,11 @@ def main(m, blocks):
     return circles
 
 
-bk1 = Circle(0, 0, 0)
-bk2 = Circle(0.5, 0.5, 0)
-bk3 = Circle(-0.6, -0.5, 0)
-bk4 = Circle(-0.5, 0.5, 0)
-bk5 = Circle(0.3, -0.7, 0)
+bk1 = Circle(0, 0, 0, 0)
+bk2 = Circle(0.5, 0.5, 0.5, 0)
+bk3 = Circle(-0.6, -0.5, -0.5, 0)
+bk4 = Circle(-0.5, 0.5, 0.5, 0)
+bk5 = Circle(0.3, -0.7, -0.5, 0)
 bks1 = [bk1]
 bks2 = [bk1, bk2]
 bks3 = [bk1, bk2, bk3]

@@ -108,5 +108,9 @@ class Test(unittest.TestCase):
 
         edges = [edge1, edge2, edge3, edge4]
 
+
+    def test_parallel_to(self):
+        self.assertTrue(False)
+
 if __name__ == '__main__':
     unittest.main()
