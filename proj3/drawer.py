@@ -1,14 +1,14 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
-import ivisual
+from ivisual import *
 
 def plot(result, blocks, name):
-    scene = ivisual.canvas(title='3D scene')
+    scene = canvas(title='3D scene')
 
     for block in blocks:
-        ivisual.sphere(pos=vector(block.x, block.y, block.z), radius=1.0 / 50, color=ivisual.color.red)
+        sphere(pos=vector(block.x, block.y, block.z), radius=1.0 / 50, color=color.red)
 
-    for sphere in result:
-        ivisual.sphere(pos=vector(sphere.x, sphere.y, sphere.z), radius=sphere.r, color=ivisual.color.blue)
+    for sph in result:
+        sphere(pos=vector(sph.x, sph.y, sph.z), radius=sph.r, color=color.blue)
 
-    ivisual.box(pos=vector(0, 0, 0), size=(2, 2, 2), color=ivisual.color.blue, opacity=0.2)
+    box(pos=vector(0, 0, 0), size=(2, 2, 2), color=color.blue, opacity=0.2)
