@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from main import *
+from compute import *
 
 
 class Test(unittest.TestCase):
