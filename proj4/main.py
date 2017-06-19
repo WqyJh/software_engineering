@@ -1,9 +1,10 @@
-#!/usr/bin/python
+#! /usr/bin/env python3
 # -*- coding: UTF-8 -*-
-from __future__ import division, print_function
 from scipy.optimize import fsolve
 from math import sqrt
 import itertools
+import threading
+import threadpool
 
 from ivisual import *
 
@@ -41,17 +42,15 @@ class Circle(object):
             return d1 < d2
         return False
 
-    def __eq__(self, other):
+    def equals(self, other):
         return float_equals(self.x, other.x) and float_equals(self.y, other.y) \
                and float_equals(self.z, other.z) and float_equals(self.r, other.r)
 
-    def __cmp__(self, other):
-        if float_equals(self.r, other.r):
-            return 0
-        elif float_lt(self.r, other.r):
-            return -1
-        else:
-            return 1
+    def __eq__(self, other):
+        return float_equals(self.r, other.r)
+
+    def __lt__(self, other):
+        return float_lt(self.r, other.r)
 
 
 class Plane(object):
@@ -325,7 +324,7 @@ def check_area(area, circles, planes):
 
 def circle_exists(circles, circle):
     for c in circles:
-        if c == circle:
+        if c.equals(circle):
             return True
     return False
 
@@ -362,6 +361,59 @@ def block_filter(blocks, planes):
     return blocks
 
 
+def compute_four_circle(circles, planes, output):
+    max_circle_area = None
+    max_circle = Circle(0, 0, 0, 0)
+    for four_circle in itertools.combinations(circles, 4):
+        area = Area(Area.Type.FOUR_CIRCLE, [], four_circle)
+        if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+            max_circle_area = area
+            max_circle = area.inner_circle()
+    output.append((max_circle_area, max_circle))
+
+
+def compute_three_circle_one_plane(circles, planes, output):
+    max_circle_area = None
+    max_circle = Circle(0, 0, 0, 0)
+    for plane in planes:
+        three_circles = itertools.combinations(circles, 3)
+        for three_circle in three_circles:
+            area = Area(Area.Type.THREE_CIRCLE_ONE_PLANE, [plane, ], three_circle)
+            if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+                max_circle_area = area
+                max_circle = area.inner_circle()
+    output.append((max_circle_area, max_circle))
+
+
+def compute_two_circle_two_plane(circles, planes, output):
+    max_circle_area = None
+    max_circle = Circle(0, 0, 0, 0)
+    for two_plane in itertools.combinations(planes, 2):
+        if not two_plane[0].parallel_to(two_plane[1]):
+            two_circles = itertools.combinations(circles, 2)
+            for two_circle in two_circles:
+                area = Area(Area.Type.TWO_CIRCLE_TWO_PLANE, two_plane, two_circle)
+                if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+                    max_circle_area = area
+                    max_circle = area.inner_circle()
+    output.append((max_circle_area, max_circle))
+
+
+def compute_one_circle_three_plane(circles, planes, output):
+    max_circle_area = None
+    max_circle = Circle(0, 0, 0, 0)
+    for three_plane in itertools.combinations(planes, 3):
+        if not three_plane[0].parallel_to(three_plane[1]) and \
+                not three_plane[1].parallel_to(three_plane[2]) and \
+                not three_plane[2].parallel_to(three_plane[0]):
+            for circle in circles:
+                area = Area(Area.Type.ONE_CIRCLE_THREE_PLANE, three_plane, [circle, ])
+                if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+                    max_circle_area = area
+                    max_circle = area.inner_circle()
+    output.append((max_circle_area, max_circle))
+
+
 def main(m, blocks):
     point1 = Point(1, 1, 1)
     point2 = Point(1, 1, -1)
@@ -385,46 +437,59 @@ def main(m, blocks):
 
     circles = [] + blocks
 
+    output = []
     while m > 0:
         max_circle_area = None
         max_circle = Circle(0, 0, 0, 0)
 
-        # 四个圆
-        for four_circle in itertools.combinations(circles, 4):
-            area = Area(Area.Type.FOUR_CIRCLE, [], four_circle)
-            if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
-                max_circle_area = area
-                max_circle = area.inner_circle()
+        output.clear()
+        compute_four_circle(circles, planes, output)
+        compute_three_circle_one_plane(circles, planes, output)
+        compute_two_circle_two_plane(circles, planes, output)
+        compute_one_circle_three_plane(circles, planes, output)
 
-        # 一个面，三个圆
-        for plane in planes:
-            three_circles = itertools.combinations(circles, 3)
-            for three_circle in three_circles:
-                area = Area(Area.Type.THREE_CIRCLE_ONE_PLANE, [plane, ], three_circle)
-                if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
-                    max_circle_area = area
-                    max_circle = area.inner_circle()
+        for (m_c_a, m_c) in output:
+            if m_c.r > max_circle.r:
+                max_circle_area = m_c_a
+                max_circle = m_c
 
-        # 两个面，两个圆
-        for two_plane in itertools.combinations(planes, 2):
-            if not two_plane[0].parallel_to(two_plane[1]):
-                two_circles = itertools.combinations(circles, 2)
-                for two_circle in two_circles:
-                    area = Area(Area.Type.TWO_CIRCLE_TWO_PLANE, two_plane, two_circle)
-                    if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
-                        max_circle_area = area
-                        max_circle = area.inner_circle()
+        # # 四个圆
+        # for four_circle in itertools.combinations(circles, 4):
+        #     area = Area(Area.Type.FOUR_CIRCLE, [], four_circle)
+        #     if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+        #         max_circle_area = area
+        #         max_circle = area.inner_circle()
+        #
+        # # 一个面，三个圆
+        # for plane in planes:
+        #     three_circles = itertools.combinations(circles, 3)
+        #     for three_circle in three_circles:
+        #         area = Area(Area.Type.THREE_CIRCLE_ONE_PLANE, [plane, ], three_circle)
+        #         if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+        #             max_circle_area = area
+        #             max_circle = area.inner_circle()
+        #
+        # # 两个面，两个圆
+        # for two_plane in itertools.combinations(planes, 2):
+        #     if not two_plane[0].parallel_to(two_plane[1]):
+        #         two_circles = itertools.combinations(circles, 2)
+        #         for two_circle in two_circles:
+        #             area = Area(Area.Type.TWO_CIRCLE_TWO_PLANE, two_plane, two_circle)
+        #             if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+        #                 max_circle_area = area
+        #                 max_circle = area.inner_circle()
+        #
+        # # 三个面，一个圆
+        # for three_plane in itertools.combinations(planes, 3):
+        #     if not three_plane[0].parallel_to(three_plane[1]) and \
+        #             not three_plane[1].parallel_to(three_plane[2]) and \
+        #             not three_plane[2].parallel_to(three_plane[0]):
+        #         for circle in circles:
+        #             area = Area(Area.Type.ONE_CIRCLE_THREE_PLANE, three_plane, [circle, ])
+        #             if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
+        #                 max_circle_area = area
+        #                 max_circle = area.inner_circle()
 
-        # 三个面，一个圆
-        for three_plane in itertools.combinations(planes, 3):
-            if not three_plane[0].parallel_to(three_plane[1]) and \
-                    not three_plane[1].parallel_to(three_plane[2]) and \
-                    not three_plane[2].parallel_to(three_plane[0]):
-                for circle in circles:
-                    area = Area(Area.Type.ONE_CIRCLE_THREE_PLANE, three_plane, [circle, ])
-                    if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
-                        max_circle_area = area
-                        max_circle = area.inner_circle()
 
         if max_circle_area is not None:
             # 找到了当前最大的圆
@@ -458,8 +523,8 @@ blocks = [bks1, bks2, bks3, bks4, bks5]
 #     result = main(30, bks)
 #     plot(result, bks, "result" + str(len(bks)))
 
-result = main(20, bks5)
-# for circle in result:
-#     print circle.x, circle.y, circle.z, circle.r
+result = main(10, bks5)
+for circle in result:
+    print (circle.x, circle.y, circle.z, circle.r)
 
 plot(result, bks3, None)
