@@ -91,6 +91,9 @@ def plane_C_neq_0(planes):
             return plane
 
 
+scipy_lock = threading.Lock()
+
+
 def one_circle_three_plane(circle1, plane1, plane2, plane3):
     x1, y1, z1, r1 = circle1.x, circle1.y, circle1.z, circle1.r
     planes = [plane1, plane2, plane3]
@@ -109,9 +112,13 @@ def one_circle_three_plane(circle1, plane1, plane2, plane3):
                 plane1.dist_to_point(x, y, z) - r,
                 plane2.dist_to_point(x, y, z) - r,
                 plane3.dist_to_point(x, y, z) - r)
-
-    x, y, z, r = fsolve(equations, (x0, y0, z0, r0))
-    return Circle(x, y, z, r)
+    scipy_lock.acquire()
+    ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
+    scipy_lock.release()
+    if status == 1:
+        return Circle(x, y, z, r)
+    else:
+        return Circle(0, 0, 0, 0)
 
 
 def two_circle_two_plane(circle1, circle2, plane1, plane2):
@@ -151,34 +158,13 @@ def two_circle_two_plane(circle1, circle2, plane1, plane2):
                 plane1.dist_to_point(x, y, z) - r,
                 plane2.dist_to_point(x, y, z) - r)
 
-    x, y, z, r = fsolve(equations, (x0, y0, z0, r0))
-    return Circle(x, y, z, r)
-
-
-def three_circle(circle1, circle2, circle3):
-    x1, y1, r1 = circle1.x, circle1.y, circle1.r
-    x2, y2, r2 = circle2.x, circle2.y, circle2.r
-    x3, y3, r3 = circle3.x, circle3.y, circle3.r
-
-    def equations(p):
-        x, y, r = p
-        return (pow(x - x1, 2) + pow(y - y1, 2) - pow(r + r1, 2),
-                pow(x - x2, 2) + pow(y - y2, 2) - pow(r + r2, 2),
-                pow(x - x3, 2) + pow(y - y3, 2) - pow(r + r3, 2))
-
-    c1, c2, c3 = circle1, circle2, circle3
-    # 将 c1, c2, c3 从小到大排列
-    if c1.r > c2.r:
-        c1, c2 = c2, c1
-    if c2.r > c3.r:
-        c2, c3 = c3, c2
-
-    ((x, y, r), info, status, mesg) = fsolve(equations, (((c1.x + c2.x) / 2), (c1.y + c2.y) / 2, (c1.r + c2.r) / 2), \
-                                             full_output=True)
+    scipy_lock.acquire()
+    ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
+    scipy_lock.release()
     if status == 1:
-        return Circle(x, y, r)
+        return Circle(x, y, z, r)
     else:
-        return Circle(0, 0, 0)
+        return Circle(0, 0, 0, 0)
 
 
 def three_circle_one_plane(circle1, circle2, circle3, plane):
@@ -208,8 +194,14 @@ def three_circle_one_plane(circle1, circle2, circle3, plane):
                 pow(x - x3, 2) + pow(y - y3, 2) + pow(z - z3, 2) - pow(r + r3, 2),
                 plane.dist_to_point(x, y, z) - r)
 
-    x, y, z, r = fsolve(equations, (x0, y0, z0, r0))
-    return Circle(x, y, z, r)
+    scipy_lock.acquire()
+    ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
+    scipy_lock.release()
+    if status == 1:
+        return Circle(x, y, z, r)
+    else:
+        # print(mesg)
+        return Circle(0, 0, 0, 0)
 
 
 def four_circle(circle1, circle2, circle3, circle4):
@@ -232,8 +224,13 @@ def four_circle(circle1, circle2, circle3, circle4):
                 pow(x - x3, 2) + pow(y - y3, 2) + pow(z - z3, 2) - pow(r + r3, 2),
                 pow(x - x4, 2) + pow(y - y4, 2) + pow(z - z4, 2) - pow(r + r4, 2))
 
-    x, y, z, r = fsolve(equations, (x0, y0, z0, r0))
-    return Circle(x, y, z, r)
+    scipy_lock.acquire()
+    ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
+    scipy_lock.release()
+    if status == 1:
+        return Circle(x, y, z, r)
+    else:
+        return Circle(0, 0, 0, 0)
 
 
 def circle_filter(circles):
@@ -422,7 +419,7 @@ def compute_one_circle_three_plane(circles, planes, output, output_lock):
     output_lock.release()
 
 
-def main(m, blocks):
+def compute(m, blocks):
     point1 = Point(1, 1, 1)
     point2 = Point(1, 1, -1)
     point3 = Point(1, -1, 1)
@@ -500,12 +497,9 @@ bks4 = [bk1, bk2, bk3, bk4]
 bks5 = [bk1, bk2, bk3, bk4, bk5]
 blocks = [bks1, bks2, bks3, bks4, bks5]
 
-# for bks in blocks:
-#     result = main(30, bks)
-#     plot(result, bks, "result" + str(len(bks)))
 
-result = main(10, bks5)
+result = compute(20, bks5)
 for circle in result:
-    print (circle.x, circle.y, circle.z, circle.r)
+    print(circle.x, circle.y, circle.z, circle.r)
 
 plot(result, bks3, None)
