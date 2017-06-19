@@ -6,7 +6,7 @@ import itertools
 import threading
 import threadpool
 
-from ivisual import *
+import ivisual
 
 EPSINON = 1e-6
 
@@ -28,16 +28,16 @@ class Point(object):
         self.z = z
 
 
-class Circle(object):
+class Sphere(object):
     def __init__(self, x, y, z, r):
         self.x = x
         self.y = y
         self.z = z
         self.r = r
 
-    def intersect_with(self, circle):
-        d1 = pow(self.x - circle.x, 2) + pow(self.y - circle.y, 2) + pow(self.z - circle.z, 2)
-        d2 = pow(self.r + circle.r, 2)
+    def intersect_with(self, sphere):
+        d1 = pow(self.x - sphere.x, 2) + pow(self.y - sphere.y, 2) + pow(self.z - sphere.z, 2)
+        d2 = pow(self.r + sphere.r, 2)
         if not float_equals(d1, d2):
             return d1 < d2
         return False
@@ -94,8 +94,8 @@ def plane_C_neq_0(planes):
 scipy_lock = threading.Lock()
 
 
-def one_circle_three_plane(circle1, plane1, plane2, plane3):
-    x1, y1, z1, r1 = circle1.x, circle1.y, circle1.z, circle1.r
+def one_sphere_three_plane(sphere1, plane1, plane2, plane3):
+    x1, y1, z1, r1 = sphere1.x, sphere1.y, sphere1.z, sphere1.r
     planes = [plane1, plane2, plane3]
     plane1, plane2, plane3 = plane_A_neq_0(planes), plane_B_neq_0(planes), plane_C_neq_0(planes)
     x2 = -plane1.D / plane1.A
@@ -117,14 +117,14 @@ def one_circle_three_plane(circle1, plane1, plane2, plane3):
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
     scipy_lock.release()
     if status == 1:
-        return Circle(x, y, z, r)
+        return Sphere(x, y, z, r)
     else:
-        return Circle(0, 0, 0, 0)
+        return Sphere(0, 0, 0, 0)
 
 
-def two_circle_two_plane(circle1, circle2, plane1, plane2):
-    x1, y1, z1, r1 = circle1.x, circle1.y, circle1.z, circle1.r
-    x2, y2, z2, r2 = circle2.x, circle2.y, circle2.z, circle2.r
+def two_sphere_two_plane(sphere1, sphere2, plane1, plane2):
+    x1, y1, z1, r1 = sphere1.x, sphere1.y, sphere1.z, sphere1.r
+    x2, y2, z2, r2 = sphere2.x, sphere2.y, sphere2.z, sphere2.r
 
     x0 = (x1 + x2) / 2
     y0 = (y1 + y2) / 2
@@ -163,15 +163,15 @@ def two_circle_two_plane(circle1, circle2, plane1, plane2):
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
     scipy_lock.release()
     if status == 1:
-        return Circle(x, y, z, r)
+        return Sphere(x, y, z, r)
     else:
-        return Circle(0, 0, 0, 0)
+        return Sphere(0, 0, 0, 0)
 
 
-def three_circle_one_plane(circle1, circle2, circle3, plane):
-    x1, y1, z1, r1 = circle1.x, circle1.y, circle1.z, circle1.r
-    x2, y2, z2, r2 = circle2.x, circle2.y, circle2.z, circle2.r
-    x3, y3, z3, r3 = circle3.x, circle3.y, circle3.z, circle3.r
+def three_sphere_one_plane(sphere1, sphere2, sphere3, plane):
+    x1, y1, z1, r1 = sphere1.x, sphere1.y, sphere1.z, sphere1.r
+    x2, y2, z2, r2 = sphere2.x, sphere2.y, sphere2.z, sphere2.r
+    x3, y3, z3, r3 = sphere3.x, sphere3.y, sphere3.z, sphere3.r
 
     x0 = (x1 + x2 + x3) / 3
     y0 = (y1 + y2 + y3) / 3
@@ -199,19 +199,19 @@ def three_circle_one_plane(circle1, circle2, circle3, plane):
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
     scipy_lock.release()
     if status == 1:
-        return Circle(x, y, z, r)
+        return Sphere(x, y, z, r)
     else:
         # print(mesg)
-        return Circle(0, 0, 0, 0)
+        return Sphere(0, 0, 0, 0)
 
 
-def four_circle(circle1, circle2, circle3, circle4):
-    circle1, circle2, circle3, circle4 = sorted([circle1, circle2, circle3, circle4])
+def four_sphere(sphere1, sphere2, sphere3, sphere4):
+    sphere1, sphere2, sphere3, sphere4 = sorted([sphere1, sphere2, sphere3, sphere4])
 
-    x1, y1, z1, r1 = circle1.x, circle1.y, circle1.z, circle1.r
-    x2, y2, z2, r2 = circle2.x, circle2.y, circle2.z, circle2.r
-    x3, y3, z3, r3 = circle3.x, circle3.y, circle3.z, circle3.r
-    x4, y4, z4, r4 = circle4.x, circle4.y, circle4.z, circle4.r
+    x1, y1, z1, r1 = sphere1.x, sphere1.y, sphere1.z, sphere1.r
+    x2, y2, z2, r2 = sphere2.x, sphere2.y, sphere2.z, sphere2.r
+    x3, y3, z3, r3 = sphere3.x, sphere3.y, sphere3.z, sphere3.r
+    x4, y4, z4, r4 = sphere4.x, sphere4.y, sphere4.z, sphere4.r
 
     x0 = (x1 + x2) / 2
     y0 = (y1 + y2) / 2
@@ -229,96 +229,96 @@ def four_circle(circle1, circle2, circle3, circle4):
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
     scipy_lock.release()
     if status == 1:
-        return Circle(x, y, z, r)
+        return Sphere(x, y, z, r)
     else:
-        return Circle(0, 0, 0, 0)
+        return Sphere(0, 0, 0, 0)
 
 
-def circle_filter(circles):
+def sphere_filter(spheres):
     """
     过滤出半径大于0的圆
-    :param circles:
+    :param spheres:
     :return:
     """
     list = []
-    for circle in circles:
-        if circle.r > 0:
-            list.append(circle)
+    for sphere in spheres:
+        if sphere.r > 0:
+            list.append(sphere)
     return list
 
 
 class Area(object):
-    def __init__(self, atype, planes, circles):
+    def __init__(self, atype, planes, spheres):
         self.atype = atype
         self.planes = planes
-        self.circles = circles
-        self.in_circle = None
+        self.spheres = spheres
+        self.in_sphere = None
 
     class Type(object):
-        ONE_CIRCLE_THREE_PLANE = 0
-        TWO_CIRCLE_TWO_PLANE = 1
-        THREE_CIRCLE_ONE_PLANE = 2
-        FOUR_CIRCLE = 3
+        ONE_SPHERE_THREE_PLANE = 0
+        TWO_SPHERE_TWO_PLANE = 1
+        THREE_SPHERE_ONE_PLANE = 2
+        FOUR_SPHERE = 3
 
-    def inner_circle(self):
-        if self.in_circle is None:
-            if self.atype == Area.Type.ONE_CIRCLE_THREE_PLANE:
-                self.in_circle = one_circle_three_plane(self.circles[0], self.planes[0], self.planes[1], self.planes[2])
-            elif self.atype == Area.Type.TWO_CIRCLE_TWO_PLANE:
-                self.in_circle = two_circle_two_plane(self.circles[0], self.circles[1], self.planes[0], self.planes[1])
-            elif self.atype == Area.Type.THREE_CIRCLE_ONE_PLANE:
-                self.in_circle = three_circle_one_plane(self.circles[0], self.circles[1], self.circles[2],
+    def inner_sphere(self):
+        if self.in_sphere is None:
+            if self.atype == Area.Type.ONE_SPHERE_THREE_PLANE:
+                self.in_sphere = one_sphere_three_plane(self.spheres[0], self.planes[0], self.planes[1], self.planes[2])
+            elif self.atype == Area.Type.TWO_SPHERE_TWO_PLANE:
+                self.in_sphere = two_sphere_two_plane(self.spheres[0], self.spheres[1], self.planes[0], self.planes[1])
+            elif self.atype == Area.Type.THREE_SPHERE_ONE_PLANE:
+                self.in_sphere = three_sphere_one_plane(self.spheres[0], self.spheres[1], self.spheres[2],
                                                         self.planes[0])
-            elif self.atype == Area.Type.FOUR_CIRCLE:
-                self.in_circle = four_circle(self.circles[0], self.circles[1], self.circles[2], self.circles[3])
-        return self.in_circle
+            elif self.atype == Area.Type.FOUR_SPHERE:
+                self.in_sphere = four_sphere(self.spheres[0], self.spheres[1], self.spheres[2], self.spheres[3])
+        return self.in_sphere
 
-    def new_areas(self, inner_circle):
-        if self.atype == Area.Type.ONE_CIRCLE_THREE_PLANE:
-            return [Area(Area.Type.ONE_CIRCLE_THREE_PLANE, self.planes, [inner_circle, ]),
-                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[0], self.planes[1]],
-                         [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[0], self.planes[2]],
-                         [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[1], self.planes[2]],
-                         [self.circles[0], inner_circle])]
-        elif self.atype == Area.Type.TWO_CIRCLE_TWO_PLANE:
-            return [Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [self.circles[1], inner_circle]),
-                    Area(Area.Type.THREE_CIRCLE_ONE_PLANE, self.planes[0],
-                         [self.circles[0], self.circles[1], inner_circle]),
-                    Area(Area.Type.THREE_CIRCLE_ONE_PLANE, self.planes[1],
-                         [self.circles[0], self.circles[1], inner_circle])]
-        elif self.atype == Area.Type.FOUR_CIRCLE:
-            return [Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[1], self.circles[2], inner_circle]),
-                    Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[1], self.circles[3], inner_circle]),
-                    Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[2], self.circles[3], inner_circle]),
-                    Area(Area.Type.FOUR_CIRCLE, [], [self.circles[1], self.circles[2], self.circles[3], inner_circle])]
+    def new_areas(self, inner_sphere):
+        if self.atype == Area.Type.ONE_SPHERE_THREE_PLANE:
+            return [Area(Area.Type.ONE_SPHERE_THREE_PLANE, self.planes, [inner_sphere, ]),
+                    Area(Area.Type.TWO_SPHERE_TWO_PLANE, [self.planes[0], self.planes[1]],
+                         [self.spheres[0], inner_sphere]),
+                    Area(Area.Type.TWO_SPHERE_TWO_PLANE, [self.planes[0], self.planes[2]],
+                         [self.spheres[0], inner_sphere]),
+                    Area(Area.Type.TWO_SPHERE_TWO_PLANE, [self.planes[1], self.planes[2]],
+                         [self.spheres[0], inner_sphere])]
+        elif self.atype == Area.Type.TWO_SPHERE_TWO_PLANE:
+            return [Area(Area.Type.TWO_SPHERE_TWO_PLANE, self.planes, [self.spheres[0], inner_sphere]),
+                    Area(Area.Type.TWO_SPHERE_TWO_PLANE, self.planes, [self.spheres[1], inner_sphere]),
+                    Area(Area.Type.THREE_SPHERE_ONE_PLANE, self.planes[0],
+                         [self.spheres[0], self.spheres[1], inner_sphere]),
+                    Area(Area.Type.THREE_SPHERE_ONE_PLANE, self.planes[1],
+                         [self.spheres[0], self.spheres[1], inner_sphere])]
+        elif self.atype == Area.Type.FOUR_SPHERE:
+            return [Area(Area.Type.FOUR_SPHERE, [], [self.spheres[0], self.spheres[1], self.spheres[2], inner_sphere]),
+                    Area(Area.Type.FOUR_SPHERE, [], [self.spheres[0], self.spheres[1], self.spheres[3], inner_sphere]),
+                    Area(Area.Type.FOUR_SPHERE, [], [self.spheres[0], self.spheres[2], self.spheres[3], inner_sphere]),
+                    Area(Area.Type.FOUR_SPHERE, [], [self.spheres[1], self.spheres[2], self.spheres[3], inner_sphere])]
 
 
 # 检查 area 是否合法
-def check_area(area, circles, planes):
-    circle = area.inner_circle()
-    for c in circles:
-        if circle.intersect_with(c):
+def check_area(area, spheres, planes):
+    sphere = area.inner_sphere()
+    for c in spheres:
+        if sphere.intersect_with(c):
             return False
     for plane in planes:
-        if float_lt(plane.dist_to_point(circle.x, circle.y, circle.z), circle.r):
+        if float_lt(plane.dist_to_point(sphere.x, sphere.y, sphere.z), sphere.r):
             return False
     return True
 
 
-def circle_exists(circles, circle):
-    for c in circles:
-        if c.equals(circle):
+def sphere_exists(spheres, sphere):
+    for c in spheres:
+        if c.equals(sphere):
             return True
     return False
 
 
 def sumr2(result):
     s = 0
-    for circle in result:
-        s += circle.r * circle.r
+    for sphere in result:
+        s += sphere.r * sphere.r
     return s
 
 
@@ -335,77 +335,77 @@ def block_filter(blocks, planes):
     return blocks
 
 
-def compute_four_circle(circles, planes, output, output_lock):
-    max_circle_area = None
-    max_circle = Circle(0, 0, 0, 0)
-    for four_circle in itertools.combinations(circles, 4):
-        area = Area(Area.Type.FOUR_CIRCLE, [], four_circle)
-        if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
-            max_circle_area = area
-            max_circle = area.inner_circle()
+def compute_four_sphere(spheres, planes, output, output_lock):
+    max_sphere_area = None
+    max_sphere = Sphere(0, 0, 0, 0)
+    for four_sphere in itertools.combinations(spheres, 4):
+        area = Area(Area.Type.FOUR_SPHERE, [], four_sphere)
+        if area.inner_sphere().r > max_sphere.r and check_area(area, spheres, planes):
+            max_sphere_area = area
+            max_sphere = area.inner_sphere()
     output_lock.acquire()
-    output.append((max_circle_area, max_circle))
+    output.append((max_sphere_area, max_sphere))
     output_lock.release()
 
 
-def compute_three_circle_one_plane(circles, planes, output, output_lock):
-    max_circle_area = None
-    max_circle = Circle(0, 0, 0, 0)
+def compute_three_sphere_one_plane(spheres, planes, output, output_lock):
+    max_sphere_area = None
+    max_sphere = Sphere(0, 0, 0, 0)
     for plane in planes:
-        three_circles = itertools.combinations(circles, 3)
-        for three_circle in three_circles:
-            area = Area(Area.Type.THREE_CIRCLE_ONE_PLANE, [plane, ], three_circle)
-            if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
-                max_circle_area = area
-                max_circle = area.inner_circle()
+        three_spheres = itertools.combinations(spheres, 3)
+        for three_sphere in three_spheres:
+            area = Area(Area.Type.THREE_SPHERE_ONE_PLANE, [plane, ], three_sphere)
+            if area.inner_sphere().r > max_sphere.r and check_area(area, spheres, planes):
+                max_sphere_area = area
+                max_sphere = area.inner_sphere()
     output_lock.acquire()
-    output.append((max_circle_area, max_circle))
+    output.append((max_sphere_area, max_sphere))
     output_lock.release()
 
 
-def compute_two_circle_two_plane(circles, planes, output, output_lock):
-    max_circle_area = None
-    max_circle = Circle(0, 0, 0, 0)
+def compute_two_sphere_two_plane(spheres, planes, output, output_lock):
+    max_sphere_area = None
+    max_sphere = Sphere(0, 0, 0, 0)
     for two_plane in itertools.combinations(planes, 2):
         if not two_plane[0].parallel_to(two_plane[1]):
-            two_circles = itertools.combinations(circles, 2)
-            for two_circle in two_circles:
-                area = Area(Area.Type.TWO_CIRCLE_TWO_PLANE, two_plane, two_circle)
-                if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
-                    max_circle_area = area
-                    max_circle = area.inner_circle()
+            two_spheres = itertools.combinations(spheres, 2)
+            for two_sphere in two_spheres:
+                area = Area(Area.Type.TWO_SPHERE_TWO_PLANE, two_plane, two_sphere)
+                if area.inner_sphere().r > max_sphere.r and check_area(area, spheres, planes):
+                    max_sphere_area = area
+                    max_sphere = area.inner_sphere()
     output_lock.acquire()
-    output.append((max_circle_area, max_circle))
+    output.append((max_sphere_area, max_sphere))
     output_lock.release()
 
 
-def compute_one_circle_three_plane(circles, planes, output, output_lock):
-    max_circle_area = None
-    max_circle = Circle(0, 0, 0, 0)
+def compute_one_sphere_three_plane(spheres, planes, output, output_lock):
+    max_sphere_area = None
+    max_sphere = Sphere(0, 0, 0, 0)
     for three_plane in itertools.combinations(planes, 3):
         if not three_plane[0].parallel_to(three_plane[1]) and \
                 not three_plane[1].parallel_to(three_plane[2]) and \
                 not three_plane[2].parallel_to(three_plane[0]):
-            for circle in circles:
-                area = Area(Area.Type.ONE_CIRCLE_THREE_PLANE, three_plane, [circle, ])
-                if area.inner_circle().r > max_circle.r and check_area(area, circles, planes):
-                    max_circle_area = area
-                    max_circle = area.inner_circle()
+            for sphere in spheres:
+                area = Area(Area.Type.ONE_SPHERE_THREE_PLANE, three_plane, [sphere, ])
+                if area.inner_sphere().r > max_sphere.r and check_area(area, spheres, planes):
+                    max_sphere_area = area
+                    max_sphere = area.inner_sphere()
     output_lock.acquire()
-    output.append((max_circle_area, max_circle))
+    output.append((max_sphere_area, max_sphere))
     output_lock.release()
 
 
 def plot(result, blocks, name):
-    scene = canvas(title='3D scene')
+    scene = ivisual.canvas(title='3D scene')
 
     for block in blocks:
-        sphere(pos=vector(block.x, block.y, block.z), radius=1.0 / 50, color=color.red)
+        ivisual.sphere(pos=vector(block.x, block.y, block.z), radius=1.0 / 50, color=ivisual.color.red)
 
-    for circle in result:
-        sphere(pos=vector(circle.x, circle.y, circle.z), radius=circle.r, color=color.blue)
+    for sphere in result:
+        ivisual.sphere(pos=vector(sphere.x, sphere.y, sphere.z), radius=sphere.r, color=ivisual.color.blue)
 
-    box(pos=vector(0, 0, 0), size=(2, 2, 2), color=color.blue, opacity=0.2)
+    ivisual.box(pos=vector(0, 0, 0), size=(2, 2, 2), color=ivisual.color.blue, opacity=0.2)
 
 
 def compute(m, blocks):
@@ -429,56 +429,52 @@ def compute(m, blocks):
 
     block_filter(blocks, planes)
 
-    circles = [] + blocks
+    spheres = [] + blocks
     output = []
     output_lock = threading.Lock()
 
     pool = threadpool.ThreadPool(4)
-    req1 = threadpool.WorkRequest(compute_four_circle, (circles, planes, output, output_lock))
-    req2 = threadpool.WorkRequest(compute_three_circle_one_plane, (circles, planes, output, output_lock))
-    req3 = threadpool.WorkRequest(compute_two_circle_two_plane, (circles, planes, output, output_lock))
-    req4 = threadpool.WorkRequest(compute_one_circle_three_plane, (circles, planes, output, output_lock))
+    req1 = threadpool.WorkRequest(compute_four_sphere, (spheres, planes, output, output_lock))
+    req2 = threadpool.WorkRequest(compute_three_sphere_one_plane, (spheres, planes, output, output_lock))
+    req3 = threadpool.WorkRequest(compute_two_sphere_two_plane, (spheres, planes, output, output_lock))
+    req4 = threadpool.WorkRequest(compute_one_sphere_three_plane, (spheres, planes, output, output_lock))
     reqs = [req1, req2, req3, req4]
 
     while m > 0:
-        max_circle_area = None
-        max_circle = Circle(0, 0, 0, 0)
+        max_sphere_area = None
+        max_sphere = Sphere(0, 0, 0, 0)
 
         output.clear()
-        # compute_four_circle(circles, planes, output)
-        # compute_three_circle_one_plane(circles, planes, output)
-        # compute_two_circle_two_plane(circles, planes, output)
-        # compute_one_circle_three_plane(circles, planes, output)
 
         [pool.putRequest(request) for request in reqs]
         pool.wait()
 
         for (m_c_a, m_c) in output:
-            if m_c.r > max_circle.r:
-                max_circle_area = m_c_a
-                max_circle = m_c
+            if m_c.r > max_sphere.r:
+                max_sphere_area = m_c_a
+                max_sphere = m_c
 
-        if max_circle_area is not None:
+        if max_sphere_area is not None:
             # 找到了当前最大的圆
             # 移除圆周上的障碍，这些点已经不能看作半径为 0 的圆了
-            for c in max_circle_area.circles:
+            for c in max_sphere_area.spheres:
                 if c.r == 0:
-                    circles.remove(c)
-            circles.append(max_circle)
+                    spheres.remove(c)
+            spheres.append(max_sphere)
             m -= 1
 
     # 移除所有障碍
-    for c in circles:
+    for c in spheres:
         if c.r == 0:
-            circles.remove(c)
-    return circles
+            spheres.remove(c)
+    return spheres
 
 
-bk1 = Circle(0, 0, 0, 0)
-bk2 = Circle(0.5, 0.5, 0.5, 0)
-bk3 = Circle(-0.6, -0.5, -0.5, 0)
-bk4 = Circle(-0.5, 0.5, 0.5, 0)
-bk5 = Circle(0.3, -0.7, -0.5, 0)
+bk1 = Sphere(0, 0, 0, 0)
+bk2 = Sphere(0.5, 0.5, 0.5, 0)
+bk3 = Sphere(-0.6, -0.5, -0.5, 0)
+bk4 = Sphere(-0.5, 0.5, 0.5, 0)
+bk5 = Sphere(0.3, -0.7, -0.5, 0)
 bks1 = [bk1]
 bks2 = [bk1, bk2]
 bks3 = [bk1, bk2, bk3]
@@ -486,8 +482,8 @@ bks4 = [bk1, bk2, bk3, bk4]
 bks5 = [bk1, bk2, bk3, bk4, bk5]
 blocks = [bks1, bks2, bks3, bks4, bks5]
 
-result = compute(20, bks5)
-for circle in result:
-    print(circle.x, circle.y, circle.z, circle.r)
+result = compute(10, bks5)
+for sphere in result:
+    print(sphere.x, sphere.y, sphere.z, sphere.r)
 
 plot(result, bks3, None)
