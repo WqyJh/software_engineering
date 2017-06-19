@@ -13,22 +13,22 @@ class Test(unittest.TestCase):
         self.assertEqual(1, -plane2.D / plane2.C)
 
     def test_eq(self):
-        circle1 = Circle(0.5, 0.5, 0.5, 0.5)
-        circle2 = Circle(0.5, 0.5, 0.5, 0.5)
-        circle3 = Circle(0.5, 0.5, 0.5, 0.6)
-        self.assertTrue(circle1 == circle2)
-        self.assertFalse(circle2 == circle3)
+        sphere1 = Sphere(0.5, 0.5, 0.5, 0.5)
+        sphere2 = Sphere(0.5, 0.5, 0.5, 0.5)
+        sphere3 = Sphere(0.5, 0.5, 0.5, 0.6)
+        self.assertTrue(sphere1 == sphere2)
+        self.assertFalse(sphere2 == sphere3)
 
-    def test_circle_exists(self):
-        circle1 = Circle(0.5, 0.5, 0.5, 0.5)
-        circle2 = Circle(0.5, -0.5, 0.5, 0.5)
-        circle3 = Circle(-0.5, -0.5, 0.5, 0.5)
-        circle4 = Circle(-0.5, 0.5, 0.5, 0.5)
-        circles = (circle1, circle2, circle3)
-        self.assertTrue(circle_exists(circles, circle1))
-        self.assertTrue(circle_exists(circles, circle2))
-        self.assertTrue(circle_exists(circles, circle3))
-        self.assertFalse(circle_exists(circles, circle4))
+    def test_sphere_exists(self):
+        sphere1 = Sphere(0.5, 0.5, 0.5, 0.5)
+        sphere2 = Sphere(0.5, -0.5, 0.5, 0.5)
+        sphere3 = Sphere(-0.5, -0.5, 0.5, 0.5)
+        sphere4 = Sphere(-0.5, 0.5, 0.5, 0.5)
+        spheres = (sphere1, sphere2, sphere3)
+        self.assertTrue(sphere_exists(spheres, sphere1))
+        self.assertTrue(sphere_exists(spheres, sphere2))
+        self.assertTrue(sphere_exists(spheres, sphere3))
+        self.assertFalse(sphere_exists(spheres, sphere4))
 
     def test_parallel_to(self):
         point1 = Point(1, 1, 1)

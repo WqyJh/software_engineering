@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python2
 import unittest
 
-from main import *
+from compute import *
 
 
 class Test(unittest.TestCase):
