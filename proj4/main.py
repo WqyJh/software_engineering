@@ -112,6 +112,7 @@ def one_circle_three_plane(circle1, plane1, plane2, plane3):
                 plane1.dist_to_point(x, y, z) - r,
                 plane2.dist_to_point(x, y, z) - r,
                 plane3.dist_to_point(x, y, z) - r)
+
     scipy_lock.acquire()
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
     scipy_lock.release()
@@ -274,8 +275,6 @@ class Area(object):
 
     def new_areas(self, inner_circle):
         if self.atype == Area.Type.ONE_CIRCLE_THREE_PLANE:
-            # if self.circles[0].r == 0:
-            #     return [Area(Area.Type.ONE_CIRCLE_THREE_PLANE, self.planes, [inner_circle, ])]
             return [Area(Area.Type.ONE_CIRCLE_THREE_PLANE, self.planes, [inner_circle, ]),
                     Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[0], self.planes[1]],
                          [self.circles[0], inner_circle]),
@@ -284,11 +283,6 @@ class Area(object):
                     Area(Area.Type.TWO_CIRCLE_TWO_PLANE, [self.planes[1], self.planes[2]],
                          [self.circles[0], inner_circle])]
         elif self.atype == Area.Type.TWO_CIRCLE_TWO_PLANE:
-            # if self.circles[0].r == 0 and self.circles[1].r == 0:
-            #     return []
-            # elif self.circles[0].r == 0 or self.circles[1].r == 0:
-            #     c = self.circles[0] if self.circles[0].r != 0 else self.circles[1]
-            #     return [Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [inner_circle, c])]
             return [Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [self.circles[0], inner_circle]),
                     Area(Area.Type.TWO_CIRCLE_TWO_PLANE, self.planes, [self.circles[1], inner_circle]),
                     Area(Area.Type.THREE_CIRCLE_ONE_PLANE, self.planes[0],
@@ -296,11 +290,6 @@ class Area(object):
                     Area(Area.Type.THREE_CIRCLE_ONE_PLANE, self.planes[1],
                          [self.circles[0], self.circles[1], inner_circle])]
         elif self.atype == Area.Type.FOUR_CIRCLE:
-            # filtered_circle = circle_filter(self.circles)
-            # if len(filtered_circle) == 0 or len(filtered_circle) == 1:
-            #     return []
-            # elif len(filtered_circle) == 2:
-            #     return [Area(Area.Type.FOUR_CIRCLE, [], [filtered_circle[0], filtered_circle[1], inner_circle])]
             return [Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[1], self.circles[2], inner_circle]),
                     Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[1], self.circles[3], inner_circle]),
                     Area(Area.Type.FOUR_CIRCLE, [], [self.circles[0], self.circles[2], self.circles[3], inner_circle]),
@@ -324,18 +313,6 @@ def circle_exists(circles, circle):
         if c.equals(circle):
             return True
     return False
-
-
-def plot(result, blocks, name):
-    scene = canvas(title='3D scene')
-
-    for block in blocks:
-        sphere(pos=vector(block.x, block.y, block.z), radius=1.0 / 50, color=color.red)
-
-    for circle in result:
-        sphere(pos=vector(circle.x, circle.y, circle.z), radius=circle.r, color=color.blue)
-
-    box(pos=vector(0, 0, 0), size=(2, 2, 2), color=color.blue, opacity=0.2)
 
 
 def sumr2(result):
@@ -419,6 +396,18 @@ def compute_one_circle_three_plane(circles, planes, output, output_lock):
     output_lock.release()
 
 
+def plot(result, blocks, name):
+    scene = canvas(title='3D scene')
+
+    for block in blocks:
+        sphere(pos=vector(block.x, block.y, block.z), radius=1.0 / 50, color=color.red)
+
+    for circle in result:
+        sphere(pos=vector(circle.x, circle.y, circle.z), radius=circle.r, color=color.blue)
+
+    box(pos=vector(0, 0, 0), size=(2, 2, 2), color=color.blue, opacity=0.2)
+
+
 def compute(m, blocks):
     point1 = Point(1, 1, 1)
     point2 = Point(1, 1, -1)
@@ -496,7 +485,6 @@ bks3 = [bk1, bk2, bk3]
 bks4 = [bk1, bk2, bk3, bk4]
 bks5 = [bk1, bk2, bk3, bk4, bk5]
 blocks = [bks1, bks2, bks3, bks4, bks5]
-
 
 result = compute(20, bks5)
 for circle in result:
