@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from compute import *
 import user_interface as ui
+
 # from drawer import plot
 
 
@@ -14,10 +15,15 @@ blocks = []
 for (x, y, z, r) in data:
     blocks.append(Sphere(x, y, z, r))
 
+print("blocks:")
 for block in blocks:
     print(block.x, block.y, block.z, block.r)
 
 result = compute(m, blocks)
+
+print("m:")
+print(m, "\n")
+print("\nspheres:")
 for sphere in result:
     print(sphere.x, sphere.y, sphere.z, sphere.r)
 

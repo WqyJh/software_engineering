@@ -222,7 +222,7 @@ def four_sphere(sphere1, sphere2, sphere3, sphere4):
 
 def sphere_filter(spheres):
     """
-    过滤出半径大于0的圆
+    过滤出半径大于0的球
     :param spheres:
     :return:
     """
@@ -418,8 +418,8 @@ def compute(m, blocks):
                 max_sphere = m_c
 
         if max_sphere_area is not None:
-            # 找到了当前最大的圆
-            # 移除圆周上的障碍，这些点已经不能看作半径为 0 的圆了
+            # 找到了当前最大的球
+            # 移除球面上的障碍，这些点已经不能看作半径为 0 的球了
             for c in max_sphere_area.spheres:
                 if c.r == 0:
                     spheres.remove(c)
