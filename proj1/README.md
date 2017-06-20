@@ -10,13 +10,13 @@ In a box bounded by [-1, 1], given m balloons(they cannot overlap) with variable
 
 整个过程中会出现四种区域：
 1. 盒子的边界形成的矩形区域
-  ![盒子边界区域](file:///home/wqy/Pictures/area_rect.png)
+  ![盒子边界区域](http://oih52y89x.bkt.clouddn.com/area_rect.png)
 2. 由一个圆和两条边围成的区域
-  ![一个圆和两条边](file:///home/wqy/Pictures/area_on_circle.png)
+  ![一个圆和两条边](http://oih52y89x.bkt.clouddn.com/area_on_circle.png)
 3. 由两个圆和一条边围成的区域
-  ![两个圆和一条边](file:///home/wqy/Pictures/area_two_circle.png)
+  ![两个圆和一条边](http://oih52y89x.bkt.clouddn.com/area_two_circle.png)
 4. 由三个圆围成的区域
-  ![三个圆](file:///home/wqy/Pictures/area_three_circle.png)
+  ![三个圆](http://oih52y89x.bkt.clouddn.com/area_three_circle.png)
 
 
 
@@ -263,27 +263,27 @@ def main(m):
 
 填充10个圆
 
-![填充10个圆](file:///home/common/Works/PyCharmProjects/software_engineering/proj1/result10.svg)
+![填充10个圆](http://oih52y89x.bkt.clouddn.com/result10.svg)
 
 
 
 填充20个圆
 
-![填充20个圆](file:///home/common/Works/PyCharmProjects/software_engineering/proj1/result20.svg填充30个圆
+![填充20个圆](http://oih52y89x.bkt.clouddn.com/result20.svg填充30个圆
 
-![填充30个圆](file:///home/common/Works/PyCharmProjects/software_engineering/proj1/result30.svg)
+![填充30个圆](http://oih52y89x.bkt.clouddn.com/result30.svg)
 
 填充50个圆
 
-![填充50个圆](file:///home/common/Works/PyCharmProjects/software_engineering/proj1/result50.svg)
+![填充50个圆](http://oih52y89x.bkt.clouddn.com/result50.svg)
 
 填充100个圆
 
-![填充100个圆](file:///home/common/Works/PyCharmProjects/software_engineering/proj1/result100.svg)
+![填充100个圆](http://oih52y89x.bkt.clouddn.com/result100.svg)
 
 填充500个圆
 
-![填充500个圆](file:///home/common/Works/PyCharmProjects/software_engineering/proj1/result500.svg)
+![填充500个圆](http://oih52y89x.bkt.clouddn.com/result500.svg)
 
 
 
