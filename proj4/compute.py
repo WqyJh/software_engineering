@@ -3,8 +3,7 @@
 from scipy.optimize import fsolve
 from math import sqrt
 import itertools
-import threading
-import threadpool
+import multiprocessing
 
 EPSINON = 1e-6
 
@@ -89,9 +88,6 @@ def plane_C_neq_0(planes):
             return plane
 
 
-scipy_lock = threading.Lock()
-
-
 def one_sphere_three_plane(sphere1, plane1, plane2, plane3):
     x1, y1, z1, r1 = sphere1.x, sphere1.y, sphere1.z, sphere1.r
     planes = [plane1, plane2, plane3]
@@ -111,9 +107,7 @@ def one_sphere_three_plane(sphere1, plane1, plane2, plane3):
                 plane2.dist_to_point(x, y, z) - r,
                 plane3.dist_to_point(x, y, z) - r)
 
-    scipy_lock.acquire()
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
-    scipy_lock.release()
     if status == 1:
         return Sphere(x, y, z, r)
     else:
@@ -157,9 +151,7 @@ def two_sphere_two_plane(sphere1, sphere2, plane1, plane2):
                 plane1.dist_to_point(x, y, z) - r,
                 plane2.dist_to_point(x, y, z) - r)
 
-    scipy_lock.acquire()
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
-    scipy_lock.release()
     if status == 1:
         return Sphere(x, y, z, r)
     else:
@@ -193,9 +185,7 @@ def three_sphere_one_plane(sphere1, sphere2, sphere3, plane):
                 pow(x - x3, 2) + pow(y - y3, 2) + pow(z - z3, 2) - pow(r + r3, 2),
                 plane.dist_to_point(x, y, z) - r)
 
-    scipy_lock.acquire()
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
-    scipy_lock.release()
     if status == 1:
         return Sphere(x, y, z, r)
     else:
@@ -223,9 +213,7 @@ def four_sphere(sphere1, sphere2, sphere3, sphere4):
                 pow(x - x3, 2) + pow(y - y3, 2) + pow(z - z3, 2) - pow(r + r3, 2),
                 pow(x - x4, 2) + pow(y - y4, 2) + pow(z - z4, 2) - pow(r + r4, 2))
 
-    scipy_lock.acquire()
     ((x, y, z, r), info, status, mesg) = fsolve(equations, (x0, y0, z0, r0), full_output=True)
-    scipy_lock.release()
     if status == 1:
         return Sphere(x, y, z, r)
     else:
@@ -333,7 +321,7 @@ def block_filter(blocks, planes):
     return blocks
 
 
-def compute_four_sphere(spheres, planes, output, output_lock):
+def compute_four_sphere(spheres, planes):
     max_sphere_area = None
     max_sphere = Sphere(0, 0, 0, 0)
     for four_sphere in itertools.combinations(spheres, 4):
@@ -341,12 +329,10 @@ def compute_four_sphere(spheres, planes, output, output_lock):
         if area.inner_sphere().r > max_sphere.r and check_area(area, spheres, planes):
             max_sphere_area = area
             max_sphere = area.inner_sphere()
-    output_lock.acquire()
-    output.append((max_sphere_area, max_sphere))
-    output_lock.release()
+    return (max_sphere_area, max_sphere)
 
 
-def compute_three_sphere_one_plane(spheres, planes, output, output_lock):
+def compute_three_sphere_one_plane(spheres, planes):
     max_sphere_area = None
     max_sphere = Sphere(0, 0, 0, 0)
     for plane in planes:
@@ -356,12 +342,10 @@ def compute_three_sphere_one_plane(spheres, planes, output, output_lock):
             if area.inner_sphere().r > max_sphere.r and check_area(area, spheres, planes):
                 max_sphere_area = area
                 max_sphere = area.inner_sphere()
-    output_lock.acquire()
-    output.append((max_sphere_area, max_sphere))
-    output_lock.release()
+    return (max_sphere_area, max_sphere)
 
 
-def compute_two_sphere_two_plane(spheres, planes, output, output_lock):
+def compute_two_sphere_two_plane(spheres, planes):
     max_sphere_area = None
     max_sphere = Sphere(0, 0, 0, 0)
     for two_plane in itertools.combinations(planes, 2):
@@ -372,12 +356,10 @@ def compute_two_sphere_two_plane(spheres, planes, output, output_lock):
                 if area.inner_sphere().r > max_sphere.r and check_area(area, spheres, planes):
                     max_sphere_area = area
                     max_sphere = area.inner_sphere()
-    output_lock.acquire()
-    output.append((max_sphere_area, max_sphere))
-    output_lock.release()
+    return (max_sphere_area, max_sphere)
 
 
-def compute_one_sphere_three_plane(spheres, planes, output, output_lock):
+def compute_one_sphere_three_plane(spheres, planes):
     max_sphere_area = None
     max_sphere = Sphere(0, 0, 0, 0)
     for three_plane in itertools.combinations(planes, 3):
@@ -389,9 +371,7 @@ def compute_one_sphere_three_plane(spheres, planes, output, output_lock):
                 if area.inner_sphere().r > max_sphere.r and check_area(area, spheres, planes):
                     max_sphere_area = area
                     max_sphere = area.inner_sphere()
-    output_lock.acquire()
-    output.append((max_sphere_area, max_sphere))
-    output_lock.release()
+    return (max_sphere_area, max_sphere)
 
 
 def compute(m, blocks):
@@ -417,14 +397,8 @@ def compute(m, blocks):
 
     spheres = [] + blocks
     output = []
-    output_lock = threading.Lock()
 
-    pool = threadpool.ThreadPool(4)
-    req1 = threadpool.WorkRequest(compute_four_sphere, (spheres, planes, output, output_lock))
-    req2 = threadpool.WorkRequest(compute_three_sphere_one_plane, (spheres, planes, output, output_lock))
-    req3 = threadpool.WorkRequest(compute_two_sphere_two_plane, (spheres, planes, output, output_lock))
-    req4 = threadpool.WorkRequest(compute_one_sphere_three_plane, (spheres, planes, output, output_lock))
-    reqs = [req1, req2, req3, req4]
+    pool = multiprocessing.Pool(4)
 
     while m > 0:
         max_sphere_area = None
@@ -432,10 +406,13 @@ def compute(m, blocks):
 
         output.clear()
 
-        [pool.putRequest(request) for request in reqs]
-        pool.wait()
+        output.append(pool.apply_async(compute_four_sphere, (spheres, planes)))
+        output.append(pool.apply_async(compute_three_sphere_one_plane, (spheres, planes)))
+        output.append(pool.apply_async(compute_two_sphere_two_plane, (spheres, planes)))
+        output.append(pool.apply_async(compute_one_sphere_three_plane, (spheres, planes)))
 
-        for (m_c_a, m_c) in output:
+        for opt in output:
+            (m_c_a, m_c) = opt.get()
             if m_c.r > max_sphere.r:
                 max_sphere_area = m_c_a
                 max_sphere = m_c
@@ -454,5 +431,3 @@ def compute(m, blocks):
         if c.r == 0:
             spheres.remove(c)
     return spheres
-
-

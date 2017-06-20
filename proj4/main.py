@@ -14,7 +14,7 @@ bks4 = [bk1, bk2, bk3, bk4]
 bks5 = [bk1, bk2, bk3, bk4, bk5]
 blocks = [bks1, bks2, bks3, bks4, bks5]
 
-result = compute(10, bks5)
+result = compute(30, bks5)
 for sphere in result:
     print(sphere.x, sphere.y, sphere.z, sphere.r)
 
