@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-
 
 from scipy.optimize import fsolve
-import numpy as np
 import math
 import turtle
 import canvasvg

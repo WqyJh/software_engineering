@@ -15,7 +15,7 @@ bks4 = [bk1, bk2, bk3, bk4]
 bks5 = [bk1, bk2, bk3, bk4, bk5]
 blocks = [bks1, bks2, bks3, bks4, bks5]
 
-result = main(10, bks5)
+result = compute(10, bks5)
 # for circle in result:
 #     print circle.x, circle.y, circle.z, circle.r
 

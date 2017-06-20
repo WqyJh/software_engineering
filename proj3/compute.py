@@ -154,32 +154,6 @@ def two_sphere_two_plane(sphere1, sphere2, plane1, plane2):
     return Sphere(x, y, z, r)
 
 
-def three_sphere(sphere1, sphere2, sphere3):
-    x1, y1, r1 = sphere1.x, sphere1.y, sphere1.r
-    x2, y2, r2 = sphere2.x, sphere2.y, sphere2.r
-    x3, y3, r3 = sphere3.x, sphere3.y, sphere3.r
-
-    def equations(p):
-        x, y, r = p
-        return (pow(x - x1, 2) + pow(y - y1, 2) - pow(r + r1, 2),
-                pow(x - x2, 2) + pow(y - y2, 2) - pow(r + r2, 2),
-                pow(x - x3, 2) + pow(y - y3, 2) - pow(r + r3, 2))
-
-    c1, c2, c3 = sphere1, sphere2, sphere3
-    # 将 c1, c2, c3 从小到大排列
-    if c1.r > c2.r:
-        c1, c2 = c2, c1
-    if c2.r > c3.r:
-        c2, c3 = c3, c2
-
-    ((x, y, r), info, status, mesg) = fsolve(equations, (((c1.x + c2.x) / 2), (c1.y + c2.y) / 2, (c1.r + c2.r) / 2), \
-                                             full_output=True)
-    if status == 1:
-        return Sphere(x, y, r)
-    else:
-        return Sphere(0, 0, 0)
-
-
 def three_sphere_one_plane(sphere1, sphere2, sphere3, plane):
     x1, y1, z1, r1 = sphere1.x, sphere1.y, sphere1.z, sphere1.r
     x2, y2, z2, r2 = sphere2.x, sphere2.y, sphere2.z, sphere2.r
@@ -314,7 +288,7 @@ def block_filter(blocks, planes):
     return blocks
 
 
-def main(m, blocks):
+def compute(m, blocks):
     point1 = Point(1, 1, 1)
     point2 = Point(1, 1, -1)
     point3 = Point(1, -1, 1)
