@@ -274,28 +274,6 @@ class Area(object):
                 self.in_sphere = four_sphere(self.spheres[0], self.spheres[1], self.spheres[2], self.spheres[3])
         return self.in_sphere
 
-    def new_areas(self, inner_sphere):
-        if self.atype == Area.Type.ONE_SPHERE_THREE_PLANE:
-            return [Area(Area.Type.ONE_SPHERE_THREE_PLANE, self.planes, [inner_sphere, ]),
-                    Area(Area.Type.TWO_SPHERE_TWO_PLANE, [self.planes[0], self.planes[1]],
-                         [self.spheres[0], inner_sphere]),
-                    Area(Area.Type.TWO_SPHERE_TWO_PLANE, [self.planes[0], self.planes[2]],
-                         [self.spheres[0], inner_sphere]),
-                    Area(Area.Type.TWO_SPHERE_TWO_PLANE, [self.planes[1], self.planes[2]],
-                         [self.spheres[0], inner_sphere])]
-        elif self.atype == Area.Type.TWO_SPHERE_TWO_PLANE:
-            return [Area(Area.Type.TWO_SPHERE_TWO_PLANE, self.planes, [self.spheres[0], inner_sphere]),
-                    Area(Area.Type.TWO_SPHERE_TWO_PLANE, self.planes, [self.spheres[1], inner_sphere]),
-                    Area(Area.Type.THREE_SPHERE_ONE_PLANE, self.planes[0],
-                         [self.spheres[0], self.spheres[1], inner_sphere]),
-                    Area(Area.Type.THREE_SPHERE_ONE_PLANE, self.planes[1],
-                         [self.spheres[0], self.spheres[1], inner_sphere])]
-        elif self.atype == Area.Type.FOUR_SPHERE:
-            return [Area(Area.Type.FOUR_SPHERE, [], [self.spheres[0], self.spheres[1], self.spheres[2], inner_sphere]),
-                    Area(Area.Type.FOUR_SPHERE, [], [self.spheres[0], self.spheres[1], self.spheres[3], inner_sphere]),
-                    Area(Area.Type.FOUR_SPHERE, [], [self.spheres[0], self.spheres[2], self.spheres[3], inner_sphere]),
-                    Area(Area.Type.FOUR_SPHERE, [], [self.spheres[1], self.spheres[2], self.spheres[3], inner_sphere])]
-
 
 # 检查 area 是否合法
 def check_area(area, spheres, planes):
