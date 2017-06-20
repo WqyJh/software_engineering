@@ -29,4 +29,10 @@ def read_data():
     f.close()
     return (m, data)
 
+def start():
+    if len(sys.argv) < 3:
+        print_usage()
+        return None
+    return read_data()
+
 
