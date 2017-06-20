@@ -183,32 +183,6 @@ class Area(object):
                 self.in_circle = three_circle(self.circles[0], self.circles[1], self.circles[2])
         return self.in_circle
 
-    def new_areas(self, inner_circle):
-        if self.atype == Area.Type.ONE_CIRCLE_TWO_EDGE:
-            if self.circles[0].r == 0:
-                return [Area(Area.Type.ONE_CIRCLE_TWO_EDGE, self.edges, [inner_circle, ])]
-            return [Area(Area.Type.ONE_CIRCLE_TWO_EDGE, self.edges, [inner_circle, ]),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0], ], [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[1], ], [self.circles[0], inner_circle])]
-        elif self.atype == Area.Type.TWO_CIRCLE_ONE_EDGE:
-            if self.circles[0].r == 0 and self.circles[1].r == 0:
-                return []
-            elif self.circles[0].r == 0 or self.circles[1].r == 0:
-                c = self.circles[0] if self.circles[0].r != 0 else self.circles[1]
-                return [Area(Area.Type.TWO_CIRCLE_ONE_EDGE, self.edges, [inner_circle, c])]
-            return [Area(Area.Type.THREE_CIRCLE, [], [self.circles[0], self.circles[1], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0], ], [self.circles[0], inner_circle]),
-                    Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [self.edges[0], ], [self.circles[1], inner_circle])]
-        elif self.atype == Area.Type.THREE_CIRCLE:
-            filtered_circle = circle_filter(self.circles)
-            if len(filtered_circle) == 0 or len(filtered_circle) == 1:
-                return []
-            elif len(filtered_circle) == 2:
-                return [Area(Area.Type.THREE_CIRCLE, [], [filtered_circle[0], filtered_circle[1], inner_circle])]
-            return [Area(Area.Type.THREE_CIRCLE, [], [self.circles[0], self.circles[1], inner_circle]),
-                    Area(Area.Type.THREE_CIRCLE, [], [self.circles[0], self.circles[2], inner_circle]),
-                    Area(Area.Type.THREE_CIRCLE, [], [self.circles[1], self.circles[2], inner_circle])]
-
 
 # 检查 area 是否合法
 def check_area(area, circles, edges):
@@ -362,52 +336,6 @@ def main(m, blocks):
     block_filter(blocks, edges)
 
     circles = [] + blocks
-    # queue = []
-    # for two_edge in sequence_combination(edges, 2):
-    #     c = nearest_one_circle(two_edge[0], two_edge[1], blocks)
-    #     queue.append(Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, [c, ]))
-    # for edge in edges:
-    #     two_circle = nearest_two_circle(edge, blocks)
-    #     if len(two_circle) > 0:
-    #         queue.append(Area(Area.Type.TWO_CIRCLE_ONE_EDGE, [edge, ], two_circle))
-    # for three_c in itertools.combinations(blocks, 3):
-    #     queue.append(Area(Area.Type.THREE_CIRCLE, [], three_c))
-    #
-    # while len(queue) > 0 and m > 0:
-    #     area = queue.pop()
-    #     inner_circle = area.inner_circle()
-    #
-    #     # print inner_circle.r
-    #     for i in range(len(queue)):
-    #         # print queue[i].inner_circle().r
-    #         if float_lt(inner_circle.r, queue[i].inner_circle().r):
-    #         # if queue[i].inner_circle().r > inner_circle.r:
-    #             queue.insert(i + 1, area)
-    #             area = queue.pop(i)
-    #             inner_circle = area.inner_circle()
-    #
-    #     if not check_area(area, circles, edges):
-    #         continue
-    #
-    #     areas = area.new_areas(inner_circle)
-    #     queue = queue + areas  # 将新产生的区域加到队列中
-    #
-    #     # 找出区域中对应的障碍
-    #     for c in area.circles:
-    #         if c.r == 0:
-    #             # 遍历所有区域，把该障碍替换成这个圆
-    #             for i in range(len(queue)):
-    #                 cls = queue[i].circles
-    #                 for j in range(len(cls)):
-    #                     if cls[j] == c:
-    #                         cls.pop(j)
-    #                         cls.insert(j, inner_circle)
-    #                         queue[i].in_circle = None
-    #
-    #     if not circle_exists(circles, inner_circle):
-    #         circles.append(inner_circle)
-    #         m -= 1
-    # return circles
 
     while m > 0:
         max_circle_area = None
@@ -419,7 +347,6 @@ def main(m, blocks):
             for two_circle in two_circles:
                 area = Area(Area.Type.TWO_CIRCLE_ONE_EDGE, (edge,), two_circle)
                 if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                    # if area.inner_circle().r > max_circle.r:
                     max_circle_area = area
                     max_circle = area.inner_circle()
 
@@ -428,7 +355,6 @@ def main(m, blocks):
             c = nearest_one_circle(two_edge[0], two_edge[1], circles)
             area = Area(Area.Type.ONE_CIRCLE_TWO_EDGE, two_edge, (c,))
             if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                # if area.inner_circle().r > max_circle.r:
                 max_circle_area = area
                 max_circle = area.inner_circle()
 
@@ -436,7 +362,6 @@ def main(m, blocks):
         for three_circle in itertools.combinations(circles, 3):
             area = Area(Area.Type.THREE_CIRCLE, (), three_circle)
             if area.inner_circle().r > max_circle.r and check_area(area, circles, edges):
-                # if area.inner_circle().r > max_circle.r:
                 max_circle_area = area
                 max_circle = area.inner_circle()
 
